@@ -2,6 +2,8 @@
 
 ![A 5,296-parameter transformer running on qgpu, the computer compiled into Qwen3.5-2B's layers](media/hero.png)
 
+▶ [16-second video: the 55,497 tokens Qwen wrote for one letter](media/clip.mp4)
+
 [qwenGPU](https://github.com/vixhal-baraiya/qwenGPU) compiles a small SIMT GPU into the weights of
 Qwen3.5-2B. Every token the model writes is one step of that machine: an instruction block or a
 register value. Its memory lives in the recurrent state of Gated DeltaNet layers.
@@ -196,6 +198,8 @@ uv run python tiny/engine.py --backend merged --merged build/gpu-only --check --
 
 Open [`media/site.html`](media/site.html) in a browser for the interactive replay of the token
 stream ([`media/stream.js`](media/stream.js) is the exact stream from the run above).
+[`media/clip.mp4`](media/clip.mp4) is a 16-second video of the same stream
+(rendered from [`media/clip.html`](media/clip.html) by [`media/render_clip.py`](media/render_clip.py)).
 
 ## Files
 

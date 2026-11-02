@@ -1,0 +1,133 @@
+<title>55,497 Tokens</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500&family=Geist+Mono:wght@400;500&display=swap">
+<style>
+/* One screen: a line, a counter over the real token stream, then the letter. */
+:root {
+  color-scheme: dark;
+  --bg: #0b0b0b; --ink: #f2f2f2; --dim: #8a8a8a; --red: #ff3b2f;
+  --sans: "Geist", "Helvetica Neue", Arial, sans-serif;
+  --mono: "Geist Mono", ui-monospace, Menlo, monospace;
+}
+html, body { height: 100%; }
+body { margin: 0; background: var(--bg); color: var(--ink); overflow: hidden; cursor: pointer; }
+#rain { position: fixed; inset: 0; width: 100%; height: 100%; }
+.stage { position: fixed; inset: 0; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.line, .count, .unit, .z, .final, .foot { position: absolute; left: 0; right: 0; text-align: center; margin: 0; }
+.line { font: 500 clamp(18px, 3.4vmin, 44px)/1.25 var(--sans); letter-spacing: -.01em; padding-inline: 24px; }
+.count { transform-origin: 50% 0; font: 500 clamp(56px, 22vmin, 280px)/1 var(--mono); font-variant-numeric: tabular-nums; letter-spacing: -.04em; }
+.unit { font: 400 clamp(14px, 2.4vmin, 30px)/1 var(--sans); color: var(--dim); }
+.z { font: 500 40vmin/1 var(--sans); color: var(--red); letter-spacing: -.03em; }
+.final { font: 400 clamp(15px, 2.8vmin, 34px)/1.3 var(--sans); color: var(--dim); padding-inline: 24px; }
+.foot { font: 400 clamp(10px, 1.3vmin, 15px)/1 var(--mono); color: #555; text-align: left; left: max(24px, 2.4vmin); bottom: max(22px, 2.4vmin); }
+</style>
+
+<canvas id="rain" aria-hidden="true"></canvas>
+<div class="stage" role="img" aria-label="Qwen3.5-2B writes 55,497 tokens to compute the letter z">
+  <p class="line" id="line">Qwen3.5-2B has a 4-core GPU compiled into its weights.</p>
+  <p class="count" id="count">55,497</p>
+  <p class="unit" id="unit">tokens</p>
+  <p class="z" id="z">z</p>
+  <p class="final" id="final">0 wrong. 1h 43m on a MacBook.</p>
+  <p class="foot" id="foot">5,296-param int8 name generator · GPU by qwenGPU</p>
+</div>
+
+<script src="stream.js"></script>
+<script>
+(() => {
+  const S = window.STREAM;
+  const bin = b => Uint8Array.from(atob(b), c => c.charCodeAt(0));
+  const TOK = new Uint32Array(bin(S.tokens).buffer), KIND = bin(S.kinds), N = TOK.length;
+  const $ = id => document.getElementById(id);
+  const cv = $("rain"), ctx = cv.getContext("2d");
+  const clamp = x => Math.max(0, Math.min(1, x));
+  const ease = x => { x = clamp(x); return x < .5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2; };
+  const span = (t, a, b) => ease((t - a) / (b - a));
+
+  let W, H, fs, lineH, perRow;
+  const size = () => {
+    const dpr = window.FIXED_DPR || devicePixelRatio || 1;
+    W = innerWidth; H = innerHeight;
+    cv.width = W * dpr; cv.height = H * dpr;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    fs = Math.max(10, Math.round(Math.min(W, H) * .02));
+    lineH = fs * 1.55;
+    ctx.font = `${fs}px "Geist Mono", Menlo, monospace`;
+    perRow = Math.max(8, Math.floor((W - fs * 2) / ctx.measureText("00000 ").width));
+  };
+
+  // the real stream: rows of tokens, bottom row = the newest, so it rises as the count grows
+  const rain = (n, alpha) => {
+    ctx.clearRect(0, 0, W, H);
+    if (alpha <= 0 || n <= 0) return;
+    const rows = Math.ceil(H / lineH) + 1;
+    const last = Math.floor((n - 1) / perRow), frac = ((n - 1) % perRow + 1) / perRow;
+    const cw = ctx.measureText("00000 ").width;
+    for (let r = 0; r < rows; r++) {
+      const row = last - r; if (row < 0) break;
+      const y = H - lineH * (r + 1) + lineH * (1 - frac) * 0;
+      const fade = 1 - r / rows;
+      for (let c = 0; c < perRow; c++) {
+        const i = row * perRow + c; if (i >= n) break;
+        const ex = KIND[i] === 1;
+        ctx.fillStyle = ex ? `rgba(255,59,47,${alpha * fade})` : `rgba(242,242,242,${alpha * fade * .8})`;
+        ctx.fillText(ex ? "EXEC" : TOK[i].toString(16).padStart(4, "0"), fs + c * cw, y);
+      }
+    }
+  };
+
+  const T_COUNT0 = 2.6, T_COUNT1 = 11, END = 16;
+  const render = t => {
+    const H_ = innerHeight;
+    // opening line: centred, then up to the top
+    const up = span(t, 2.0, 2.6);
+    const line = $("line");
+    line.style.top = `${(0.46 - 0.38 * up) * H_}px`;
+    line.style.transform = `scale(${1 - .22 * up})`;
+    // counter
+    const pc = clamp((t - T_COUNT0) / (T_COUNT1 - T_COUNT0));
+    const n = Math.round(N * Math.pow(pc, 2.4));
+    const c = $("count"), u = $("unit");
+    const shown = span(t, 2.3, 2.8), lift = span(t, 12.4, 13.2);
+    c.textContent = n.toLocaleString("en-US");
+    c.style.opacity = shown;
+    c.style.top = `${(0.38 - 0.27 * lift) * H_}px`;
+    c.style.transform = `scale(${1 - .62 * lift})`;
+    const dip = Math.abs(lift - .5) * 2;
+    u.style.opacity = shown * (lift > 0 && lift < 1 ? dip : 1);
+    u.textContent = lift < .5 ? "tokens" : "tokens to write one letter";
+    u.style.top = `${(0.38 - 0.27 * lift) * H_ + c.offsetHeight * (1 - .62 * lift) + 0.02 * H_}px`;
+    // line leaves as the counter lifts
+    line.style.opacity = 1 - lift;
+    // rain: on while counting, stops dead at the end, then fades
+    rain(n, .16 * shown * (1 - span(t, 11.4, 12.4)));
+    // the letter
+    const zp = span(t, 12.8, 13.5), z = $("z");
+    z.style.opacity = zp;
+    z.style.top = `${0.33 * H_}px`;
+    z.style.transform = `scale(${.9 + .1 * zp})`;
+    const f = $("final"); f.style.opacity = span(t, 13.8, 14.4); f.style.top = `${0.33 * H_ + z.offsetHeight * 1.0}px`;
+  };
+
+  size();
+  window.END = END;
+  window.render = render;
+  window.ready = document.fonts.ready.then(() => { size(); render(END); });
+  addEventListener("resize", () => { size(); });
+
+  // live: play once on load, click to replay
+  if (!window.FRAME_MODE) {
+    let t0 = null;
+    const loop = ts => {
+      if (t0 === null) t0 = ts;
+      const t = (ts - t0) / 1000;
+      render(Math.min(t, END));
+      if (t < END) requestAnimationFrame(loop);
+    };
+    const start = () => { t0 = null; requestAnimationFrame(loop); };
+    if (matchMedia("(prefers-reduced-motion: reduce)").matches) window.ready.then(() => render(END));
+    else window.ready.then(start);
+    addEventListener("click", start);
+  }
+})();
+</script>
