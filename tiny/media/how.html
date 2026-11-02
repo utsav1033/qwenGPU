@@ -1,0 +1,323 @@
+<title>55,497 Tokens for One Letter</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap">
+<style>
+/* One column, black, one accent. Each trick gets a small live demo; the copy stays short. */
+:root {
+  color-scheme: dark;
+  --bg: #0b0b0b; --ink: #ededed; --dim: #8b8b8b; --faint: #4a4a4a; --line: #222;
+  --box: #121212; --red: #ff3b2f; --green: #5fd38d;
+  --sans: "Geist", "Helvetica Neue", Arial, sans-serif;
+  --mono: "Geist Mono", ui-monospace, Menlo, monospace;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 17px/1.6 var(--sans); }
+main { max-width: 760px; margin: 0 auto; padding-left: max(20px, env(safe-area-inset-left, 0px)); padding-right: max(20px, env(safe-area-inset-right, 0px)); padding-block: 56px 96px; display: grid; gap: 88px; }
+section { display: grid; gap: 18px; }
+section > * { min-width: 0; }
+h1 { font: 600 clamp(34px, 6.4vw, 60px)/1.05 var(--sans); letter-spacing: -.03em; margin: 0; text-wrap: balance; }
+h1 .n { color: var(--red); font-variant-numeric: tabular-nums; }
+h2 { font: 600 clamp(24px, 3.6vw, 32px)/1.15 var(--sans); letter-spacing: -.02em; margin: 0; text-wrap: balance; }
+p { margin: 0; color: #c9c9c9; }
+p b, li b { color: var(--ink); font-weight: 500; }
+.dim { color: var(--dim); }
+code, .mono { font-family: var(--mono); font-size: .88em; }
+code { color: var(--ink); }
+a { color: var(--ink); text-decoration-color: var(--red); text-underline-offset: 3px; }
+.demo { background: var(--box); border: 1px solid var(--line); border-radius: 10px; padding: 18px; display: grid; gap: 14px; }
+.demo > * { min-width: 0; }
+.cap { font: 13px/1.5 var(--mono); color: var(--dim); }
+pre { margin: 0; font: 13px/1.6 var(--mono); color: #cfcfcf; overflow-x: auto; background: var(--box); border: 1px solid var(--line); border-radius: 10px; padding: 16px 18px; }
+pre .c { color: var(--faint); }
+pre .r { color: var(--red); }
+input[type=range] { width: 100%; accent-color: var(--red); }
+label { font: 13px var(--mono); color: var(--dim); display: grid; gap: 6px; }
+label output { color: var(--ink); }
+.row { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 14px; }
+table { width: 100%; border-collapse: collapse; font: 13px/1.5 var(--mono); font-variant-numeric: tabular-nums; }
+td, th { padding: 6px 8px 6px 0; border-bottom: 1px solid var(--line); text-align: left; vertical-align: top; }
+th { color: var(--dim); font-weight: 400; }
+td.num, th.num { text-align: right; padding-right: 0; }
+.ok { color: var(--green); }
+.bad { color: var(--red); }
+.scroll { overflow-x: auto; }
+
+/* hero stream */
+.stream { height: 210px; overflow: hidden; font: 13px/1.7 var(--mono); color: #5a5a5a; position: relative; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); padding-block: 4px; }
+.stream::after { content: ""; position: absolute; inset: 0; background: linear-gradient(var(--bg), transparent 30%, transparent 75%, var(--bg)); pointer-events: none; }
+.stream .e { color: var(--red); }
+.stream .m { color: #9a9a9a; }
+.counter { display: flex; justify-content: space-between; gap: 12px; font: 13px var(--mono); color: var(--dim); font-variant-numeric: tabular-nums; }
+.counter b { color: var(--ink); font-weight: 500; }
+
+/* bits */
+.bits { display: grid; gap: 8px; font: 12px/1 var(--mono); }
+.bits .w { display: grid; grid-template-columns: 84px 1fr; gap: 10px; align-items: center; }
+.bits .w > span:first-child { color: var(--dim); }
+.bits .cells { display: grid; grid-template-columns: repeat(32, 1fr); gap: 1px; }
+.bits .cells i { font-style: normal; text-align: center; padding: 4px 0; background: #191919; color: #555; border-radius: 1px; font-size: 10px; }
+.bits .cells i.one { color: var(--ink); background: #262626; }
+.bits .cells i.hi { box-shadow: inset 0 -2px 0 var(--red); }
+.bits .cells i.hi.one { background: #3a1714; }
+.verdict { font: 14px/1.6 var(--mono); }
+
+/* memory map */
+.mem { display: grid; grid-template-columns: repeat(18, 1fr); gap: 3px; }
+.mem i { aspect-ratio: 1; border-radius: 2px; background: #1a1a1a; }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 18px; font: 12px var(--mono); color: var(--dim); }
+.legend span { display: inline-flex; align-items: center; gap: 6px; }
+.legend i { width: 10px; height: 10px; border-radius: 2px; display: inline-block; }
+
+/* bars */
+.bars { display: grid; gap: 6px; font: 12px/1.3 var(--mono); }
+.bar { display: grid; grid-template-columns: 150px 1fr 64px; gap: 10px; align-items: center; }
+.bar > span:first-child { color: var(--dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.bar > span:last-child { text-align: right; font-variant-numeric: tabular-nums; }
+.bar .track { height: 12px; background: #161616; border-radius: 2px; overflow: hidden; }
+.bar .fill { height: 100%; background: var(--ink); border-radius: 2px; }
+.bar.red .fill { background: var(--red); }
+
+.launches { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 4px; font: 11px/1.3 var(--mono); }
+.launches div { padding: 6px 8px; background: #141414; border-radius: 3px; display: flex; justify-content: space-between; gap: 6px; color: var(--dim); }
+.launches div b { color: var(--ink); font-weight: 400; }
+
+.names { font: 15px/2 var(--mono); color: var(--dim); }
+.foot { font: 13px/1.7 var(--mono); color: var(--dim); border-top: 1px solid var(--line); padding-top: 22px; }
+
+@media (max-width: 560px) {
+  .bits .w { grid-template-columns: 1fr; gap: 4px; }
+  .bits .cells i { font-size: 8px; }
+  .bar { grid-template-columns: 96px 1fr 52px; }
+  .mem { grid-template-columns: repeat(14, 1fr); }
+}
+</style>
+
+<main>
+
+<section>
+  <h1>It took Qwen <span class="n">55,497</span> tokens to write one letter.</h1>
+  <p>Someone compiled a tiny computer into the weights of Qwen3.5-2B (<a href="https://github.com/vixhal-baraiya/qwenGPU">qwenGPU</a>). Every token the model writes is one step of that machine. I wrote GPU code for it and ran a small neural network on it: a 5,296-parameter transformer that makes up names. This is how.</p>
+  <div class="counter"><span>the real token stream, as Qwen wrote it</span><span><b id="sc">0</b> / 55,497</span></div>
+  <div class="stream" id="stream" aria-hidden="true"></div>
+  <p class="dim">Red <span class="mono" style="color:var(--red)">EXEC</span> starts a block of instructions. The tokens after it are the values the block computed. It ran for 1 h 43 min on a MacBook and printed <span class="mono">z</span>. Every token was compared with a reference simulator, and none was wrong.</p>
+</section>
+
+<section>
+  <h2>The computer inside the model</h2>
+  <p>The machine is tiny: <b>4 cores, 126 words of memory, 15 registers, 32-bit integers only</b>. No floating point. No division. It does one multiply per step, and it can only shift by numbers known before the program starts.</p>
+  <p>Its memory lives in the internal state of 45 Gated DeltaNet layers. That is a matrix each layer keeps and overwrites token by token, which makes a good RAM. The machine's weights are compiled by hand, not learned. Qwen's own language layers were removed so the model fits in 16 GB.</p>
+  <p>Programs are written in CUDA, compiled to PTX by clang, then lowered by qwenGPU into blocks of instructions. The host feeds the program in as tokens, and the model writes out the execution.</p>
+</section>
+
+<section>
+  <h2>A transformer in 33 kernel launches</h2>
+  <p>The name generator has 2 layers, 16 dimensions and 2 attention heads. I trained it on 32,000 names, then converted every weight to an 8-bit integer. The loss went from 2.087 to 2.090.</p>
+  <p>126 words of memory can't hold the model, so the host streams it in, like <code>cudaMemcpy</code> around every kernel. Each launch gets one 64-word tile of weights plus its inputs, and the host reads the outputs back. One letter takes 33 launches:</p>
+  <div class="launches" id="launches"></div>
+  <p class="cap">Tokens Qwen wrote for each launch, in order. The matrix multiplies dominate.</p>
+</section>
+
+<section>
+  <h2>Fitting a matrix multiply in 126 words</h2>
+  <p>This is memory during one launch, the second half of a layer's MLP. 64 words of weights (8 rows × 32 inputs, 4 int8 per word), the 32 inputs packed into 16 words, the 16 outputs, and one word for the sum of squares the next RMSNorm needs.</p>
+  <div class="demo">
+    <div class="mem" id="mem"></div>
+    <div class="legend" id="memleg"></div>
+  </div>
+</section>
+
+<section>
+  <h2>Two multiplies for the price of one</h2>
+  <p>The machine does one multiply per step, and a matrix multiply is nothing but multiplies. So the kernel packs two 8-bit weights into one 32-bit word, and two inputs into another, in opposite order. One 32-bit multiply then leaves <b>a₀·x₀ + a₂·x₂</b> sitting in the top 16 bits, exactly. Try it:</p>
+  <div class="demo">
+    <div class="row">
+      <label>a₀ <output id="o-a0"></output><input type="range" id="a0" min="-127" max="127" value="-93"></label>
+      <label>a₂ <output id="o-a2"></output><input type="range" id="a2" min="-127" max="127" value="58"></label>
+      <label>x₀ <output id="o-x0"></output><input type="range" id="x0" min="-127" max="127" value="41"></label>
+      <label>x₂ <output id="o-x2"></output><input type="range" id="x2" min="-127" max="127" value="-120"></label>
+    </div>
+    <div class="bits" id="bits"></div>
+    <div class="verdict" id="verdict"></div>
+  </div>
+  <p class="dim">The cross terms land in the bottom half and above bit 32, where they fall off. A word of four weights costs 5 multiplier operations instead of 12.</p>
+</section>
+
+<section>
+  <h2>Hand-ordering the instructions</h2>
+  <p>The machine runs instructions in blocks of 4 stages: logic in stage 1, the multiply in stage 2, memory atomics in stage 3. The compiler packs instructions into blocks greedily, in the order it gets them. Clang's order wasted half of every block, so the inner loop of the matrix multiply is hand-written PTX, ordered so each block is full:</p>
+<pre><span class="c">// one weight word: 5 blocks instead of 10. Each line: stage 1 | stage 2 | ...</span>
+ld w      <span class="c">|</span> and e = w &amp; 0x00FF00FF  <span class="c">|</span> <span class="r">mul.hi</span> t = w &gt;&gt; 8  <span class="c">|</span> sub ew = e - 0x00800080
+ld ex     <span class="c">|</span> and o = t &amp; 0x00FF00FF  <span class="c">|</span> <span class="r">mul</span> m1 = ew * ex     <span class="c">|</span> add l1 = m1 + 0x80008000
+ld ox     <span class="c">|</span> sub ow = o - 0x00800080  <span class="c">|</span> <span class="r">mul</span> m2 = ow * ox     <span class="c">|</span> add l2 = m2 + 0x80008000
+          <span class="c">|</span>                         <span class="c">|</span> <span class="r">mul.hi</span> h1 = l1 &gt;&gt; 16 <span class="c">|</span> add acc += h1
+          <span class="c">|</span>                         <span class="c">|</span> <span class="r">mul.hi</span> h2 = l2 &gt;&gt; 16 <span class="c">|</span> add acc += h2</pre>
+  <p class="dim">There's no shift by a variable either, so <code>x &gt;&gt; 8</code> is written as <code>mulhi(x, 2²⁴)</code>: multiply, keep the top half.</p>
+</section>
+
+<section>
+  <h2>exp() without floats</h2>
+  <p>Softmax and SiLU need e<sup>−x</sup>. There are no floats, but e<sup>−x</sup> is the limit of (1 − x/n)<sup>n</sup>. With n = 1024 = 2¹⁰, that's one subtraction and then <b>ten squarings</b>, in 30-bit fixed point.</p>
+  <div class="demo">
+    <label>x <output id="o-ex"></output><input type="range" id="ex" min="0" max="800" value="230"></label>
+    <div class="scroll"><table id="exptab"></table></div>
+  </div>
+</section>
+
+<section>
+  <h2>Division without a divider</h2>
+  <p>Softmax has to divide by the sum, and sigmoid is 1/(1 + e<sup>−x</sup>). The machine can't divide by a value computed at run time, so 1/d is <b>Newton's method</b>: guess, then repeat y ← y·(2 − d·y). Each step doubles the correct digits. Starting from the straight line 24/17 − 8/17·d, three steps are enough for every d in [1, 2).</p>
+  <div class="demo">
+    <label>d <output id="o-nd"></output><input type="range" id="nd" min="1000" max="1999" value="1700"></label>
+    <div class="scroll"><table id="newtab"></table></div>
+  </div>
+</section>
+
+<section>
+  <h2>Square root, one bit at a time</h2>
+  <p>RMSNorm divides by √(mean of squares). Instead of a square root, the kernel finds the largest r with r²·Σx² below a threshold, setting <b>one bit per step</b> from the top: 15 steps, exact, no rounding.</p>
+  <div class="demo">
+    <label>Σx² <output id="o-ss"></output><input type="range" id="ss" min="2000" max="400000" step="1000" value="91000"></label>
+    <div class="scroll"><table id="sqtab"></table></div>
+  </div>
+  <p class="dim">The sum Σx² comes for free: every kernel that writes the residual stream also <code>atomicAdd</code>s each value squared into one word. That removed a whole launch per norm.</p>
+</section>
+
+<section>
+  <h2>Making it cheaper</h2>
+  <p>Every value a block computes costs the model 8 tokens to write down. So fewer, fuller blocks means fewer tokens. Tokens per letter, from the first working version to the last:</p>
+  <div class="demo"><div class="bars" id="opt"></div></div>
+</section>
+
+<section>
+  <h2>A bug in the compiler</h2>
+  <p>The first argmax always returned 0. For <code>best = max(v, best); idx = v &gt; best ? k : idx</code>, clang emits a compare, then the max, then a select. qwenGPU's compiler recomputes the compare right next to the select, because conditions can't cross blocks. By then the max has already overwritten <code>best</code>, so the condition is always false.</p>
+<pre>setp p, v, best        <span class="c">// p = v &gt; best</span>
+max  best, v, best     <span class="c">// best overwritten</span>
+selp idx, k, idx, p    <span class="c">// the compiler re-checks v &gt; best here: </span><span class="r">always false</span></pre>
+  <p class="dim">On [3, 1, 4, 1, 5, 9, 2, 6], the PTX interpreter returns 5 and the compiled blocks return 0. The sample kernel works around it, and there's a repro in the repo.</p>
+</section>
+
+<section>
+  <h2>Did it work?</h2>
+  <p>Inside Qwen, the model wrote <b>55,497 tokens</b> for one letter, and every one matched the simulator. The output buffers of all 33 launches matched a plain numpy version of the model, bit for bit. The letter was <code>z</code>, the same as numpy's.</p>
+  <p>At 9 tokens a second, a whole name inside Qwen takes most of a day. So the full names ran on the simulator, the same machine in Python. 20 names and 4,587 launches, all identical to numpy:</p>
+  <p class="names">abda · zevery · kaekoni · arita · attonikon · espaul · teshard · abro · nyiani · biari · zakod · jonthee · rai · prodov · jorness · yadelyn</p>
+</section>
+
+<div class="foot">Computer-in-the-weights: <a href="https://github.com/vixhal-baraiya/qwenGPU">vixhal-baraiya/qwenGPU</a>. Name data: karpathy/makemore. The kernels, int8 model and host engine are new.</div>
+</main>
+
+<script src="stream.js"></script>
+<script>
+(() => {
+  const $ = id => document.getElementById(id);
+  const S = window.STREAM;
+  const bin = b => Uint8Array.from(atob(b), c => c.charCodeAt(0));
+  const TOK = new Uint32Array(bin(S.tokens).buffer), KIND = bin(S.kinds), N = TOK.length;
+  const fmt = n => n.toLocaleString("en-US");
+  const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  // hero stream: real tokens, 16 per line, scrolling
+  const PER = 14, LINES = 14;
+  const line = r => {
+    let s = "";
+    for (let c = 0; c < PER; c++) {
+      const i = r * PER + c; if (i >= N) break;
+      s += KIND[i] === 1 ? `<span class="e">EXEC </span>` : KIND[i] === 2 ? `<span class="m">${TOK[i].toString(16).padStart(5, "0")}</span>` : TOK[i].toString(16).padStart(5, "0");
+      s += " ";
+    }
+    return s;
+  };
+  let row = 0;
+  const tick = () => {
+    const rows = [];
+    for (let r = Math.max(0, row - LINES + 1); r <= row; r++) rows.push(line(r));
+    $("stream").innerHTML = rows.join("<br>");
+    $("sc").textContent = fmt(Math.min(N, (row + 1) * PER));
+    row = (row + 1) % Math.ceil(N / PER);
+  };
+  row = LINES; tick();
+  if (!reduce) setInterval(tick, 60);
+
+  // launches
+  const ROLE = ["embed", ...[1, 2].flatMap(l => ["norm", "q", "k", "v", "scores", "softmax", "attn·V", "out", "norm", "up", "up", "SiLU", "down", "down"].map(r => `L${l} ${r}`)), "norm", "logits", "logits", "sample"];
+  $("launches").innerHTML = S.launches.map(([k, n], i) => `<div><span>${ROLE[i]}</span><b>${fmt(n)}</b></div>`).join("");
+
+  // memory map of the down-projection launch (mm_res, 8 rows x 8 words)
+  const regions = [["weights (64)", 64, "#ededed"], ["inputs (16)", 16, "#ff3b2f"], ["outputs (16)", 16, "#5fd38d"], ["Σx² (1)", 1, "#e0b84a"], ["free (29)", 29, "#1a1a1a"]];
+  let cells = "";
+  for (const [, n, c] of regions) for (let j = 0; j < n; j++) cells += `<i style="background:${c}"></i>`;
+  $("mem").innerHTML = cells;
+  $("memleg").innerHTML = regions.map(([l, , c]) => `<span><i style="background:${c};${c === "#1a1a1a" ? "border:1px solid #333" : ""}"></i>${l}</span>`).join("");
+
+  // two products in one multiply (bit for bit as the kernel: ew = a0 + a2 2^16, ex = x2 + x0 2^16)
+  const M = (1n << 32n) - 1n;
+  const bitsRow = (label, v, hi) => {
+    let s = `<div class="w"><span>${label}</span><div class="cells">`;
+    for (let b = 31; b >= 0; b--) {
+      const one = (v >> BigInt(b)) & 1n;
+      s += `<i class="${one ? "one" : ""} ${hi && b >= 16 ? "hi" : ""}">${one}</i>`;
+    }
+    return s + "</div></div>";
+  };
+  const swar = () => {
+    const g = id => +$(id).value;
+    const [a0, a2, x0, x2] = ["a0", "a2", "x0", "x2"].map(g);
+    ["a0", "a2", "x0", "x2"].forEach(id => $("o-" + id).textContent = g(id));
+    const ew = (BigInt(a0) + (BigInt(a2) << 16n)) & M;
+    const ex = (BigInt(x2) + (BigInt(x0) << 16n)) & M;
+    const l = (ew * ex + 0x80008000n) & M;
+    const top = Number(l >> 16n) - 0x8000;
+    const want = a0 * x0 + a2 * x2;
+    $("bits").innerHTML = bitsRow("a₀ + a₂·2¹⁶", ew) + bitsRow("x₂ + x₀·2¹⁶", ex) + bitsRow("product", l, true);
+    $("verdict").innerHTML = `top 16 bits → <b>${top}</b> &nbsp; a₀x₀ + a₂x₂ = ${a0}·${x0} + ${a2}·${x2} = <b>${want}</b> &nbsp; <span class="${top === want ? "ok" : "bad"}">${top === want ? "exact" : "off"}</span>`;
+  };
+  ["a0", "a2", "x0", "x2"].forEach(id => $(id).addEventListener("input", swar));
+  swar();
+
+  // exp: (1 - x/1024)^1024 by ten squarings (real arithmetic; the kernel does it in Q30)
+  const expd = () => {
+    const x = +$("ex").value / 100;
+    $("o-ex").textContent = x.toFixed(2);
+    let q = 1 - x / 1024, rows = `<tr><th>step</th><th class="num">value</th><th class="num">power</th></tr><tr><td>start: 1 − x/1024</td><td class="num">${q.toFixed(9)}</td><td class="num">1</td></tr>`;
+    for (let i = 1; i <= 10; i++) { q = q * q; rows += `<tr><td>square ${i}</td><td class="num">${q.toFixed(9)}</td><td class="num">${2 ** i}</td></tr>`; }
+    rows += `<tr><td class="ok">real e^−x</td><td class="num ok">${Math.exp(-x).toFixed(9)}</td><td></td></tr>`;
+    $("exptab").innerHTML = rows;
+  };
+  $("ex").addEventListener("input", expd); expd();
+
+  // Newton
+  const newt = () => {
+    const d = +$("nd").value / 1000;
+    $("o-nd").textContent = d.toFixed(3);
+    let y = 24 / 17 - 8 / 17 * d;
+    const err = v => { const e = Math.abs(v - 1 / d); return e === 0 ? "exact" : `${Math.max(0, -Math.log10(e * d)).toFixed(1)} digits`; };
+    let rows = `<tr><th>step</th><th class="num">y</th><th class="num">correct</th></tr><tr><td>guess 24/17 − 8/17·d</td><td class="num">${y.toFixed(10)}</td><td class="num">${err(y)}</td></tr>`;
+    for (let i = 1; i <= 3; i++) { y = y * (2 - d * y); rows += `<tr><td>step ${i}</td><td class="num">${y.toFixed(10)}</td><td class="num">${err(y)}</td></tr>`; }
+    rows += `<tr><td class="ok">1/d</td><td class="num ok">${(1 / d).toFixed(10)}</td><td></td></tr>`;
+    $("newtab").innerHTML = rows;
+  };
+  $("nd").addEventListener("input", newt); newt();
+
+  // 1/rms by bit search: largest r < 2^15 with r^2 * ss < th * 2^32 (th = 1024 here)
+  const sq = () => {
+    const ss = +$("ss").value, th = 1024;
+    $("o-ss").textContent = fmt(ss);
+    const lim = th * 2 ** 32;
+    let r = 0, rows = `<tr><th>bit</th><th class="num">try r</th><th class="num">r²·Σx² &lt; limit?</th><th class="num">keep</th></tr>`;
+    for (let b = 14; b >= 0; b--) {
+      const c = r | (1 << b), keep = c * c * ss < lim;
+      if (keep) r = c;
+      rows += `<tr><td>2^${b}</td><td class="num">${fmt(c)}</td><td class="num ${keep ? "ok" : "dim"}">${keep ? "yes" : "no"}</td><td class="num">${fmt(r)}</td></tr>`;
+    }
+    rows += `<tr><td class="ok">√(limit/Σx²)</td><td class="num ok">${Math.sqrt(lim / ss).toFixed(2)}</td><td></td><td class="num ok">${fmt(r)}</td></tr>`;
+    $("sqtab").innerHTML = rows;
+  };
+  $("ss").addEventListener("input", sq); sq();
+
+  // optimization history
+  const opt = [["first version", 87700], ["fused RMSNorm", 79400], ["hand-ordered matmul", 60000], ["hand-ordered exp, 1/x", 59700]];
+  $("opt").innerHTML = opt.map(([l, v], i) => `<div class="bar ${i === opt.length - 1 ? "red" : ""}"><span>${l}</span><div class="track"><div class="fill" style="width:${v / 877}%"></div></div><span>${(v / 1000).toFixed(1)}K</span></div>`).join("") +
+    `<p class="cap" style="margin-top:6px">average tokens per letter on the simulator, 33 launches (38 before fusing RMSNorm)</p>`;
+})();
+</script>

@@ -1,0 +1,404 @@
+<title>Model-in-a-Model Playground</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap">
+<style>
+/* A product playground: settings on the left, the run on the right. Neutral surfaces, one accent for "running". */
+:root {
+  --bg: #f6f6f5; --panel: #ffffff; --ink: #161616; --dim: #6f6f6c; --faint: #a9a9a5; --line: #e5e5e2;
+  --soft: #f0f0ee; --accent: #e5484d; --accent-soft: #fde8e8; --good: #2f9e5b;
+  --sans: "Geist", "Helvetica Neue", Arial, sans-serif;
+  --mono: "Geist Mono", ui-monospace, Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #0e0e0e; --panel: #161616; --ink: #ededed; --dim: #9a9a96; --faint: #5b5b58; --line: #262626;
+  --soft: #1d1d1d; --accent: #ff5a5f; --accent-soft: #3a1617; --good: #4cc27c; color-scheme: dark; } }
+:root[data-theme="dark"] {
+  --bg: #0e0e0e; --panel: #161616; --ink: #ededed; --dim: #9a9a96; --faint: #5b5b58; --line: #262626;
+  --soft: #1d1d1d; --accent: #ff5a5f; --accent-soft: #3a1617; --good: #4cc27c; color-scheme: dark; }
+* { box-sizing: border-box; }
+body.post, body.post { height: 100%; } html:has(body.post) { height: 100%; }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 15px/1.5 var(--sans); }
+.app { max-width: 1120px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 22px 48px; display: grid; gap: 18px; }
+header { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.logo { font: 600 16px var(--sans); letter-spacing: -.01em; }
+.logo span { color: var(--dim); font-weight: 400; }
+.badge { font: 500 11px var(--mono); padding: 3px 8px; border-radius: 99px; background: var(--soft); color: var(--dim); border: 1px solid var(--line); }
+header .gh { margin-left: auto; font: 13px var(--sans); color: var(--dim); }
+header .gh a { color: var(--ink); }
+.grid { display: grid; grid-template-columns: 300px 1fr; gap: 18px; align-items: start; }
+.grid > * { min-width: 0; }
+.panel { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 18px; display: grid; gap: 16px; }
+.panel > * { min-width: 0; }
+.field { display: grid; gap: 6px; }
+.field .k { font: 500 12px var(--sans); color: var(--dim); }
+.select { font: 14px var(--sans); padding: 10px 12px; border: 1px solid var(--line); border-radius: 8px; background: var(--soft); display: grid; gap: 2px; }
+.select small { color: var(--dim); font-size: 12px; }
+.seg { display: grid; grid-template-columns: 1fr 1fr; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+.seg button { font: 500 13px var(--sans); padding: 9px 6px; border: 0; background: transparent; color: var(--dim); cursor: pointer; }
+.seg button[aria-pressed="true"] { background: var(--soft); color: var(--ink); }
+.go { font: 600 15px var(--sans); padding: 13px; border-radius: 9px; border: 0; background: var(--ink); color: var(--bg); cursor: pointer; }
+.go:disabled { opacity: .5; cursor: default; }
+button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.note { font: 12px/1.55 var(--sans); color: var(--dim); }
+.specs { display: grid; gap: 6px; font: 12px/1.4 var(--mono); color: var(--dim); }
+.specs div { display: flex; justify-content: space-between; gap: 8px; }
+.specs b { color: var(--ink); font-weight: 400; text-align: right; }
+
+/* run */
+.run { padding: 0; gap: 0; }
+.run-head { display: flex; align-items: center; gap: 10px; padding: 14px 18px; border-bottom: 1px solid var(--line); font: 13px var(--sans); color: var(--dim); }
+.dot { width: 8px; height: 8px; border-radius: 50%; background: var(--faint); }
+.dot.on { background: var(--accent); box-shadow: 0 0 0 4px var(--accent-soft); animation: pulse 1.2s ease-in-out infinite; }
+.dot.done { background: var(--good); }
+@keyframes pulse { 50% { box-shadow: 0 0 0 7px transparent; } }
+.run-head .clock { margin-left: auto; font: 13px var(--mono); font-variant-numeric: tabular-nums; color: var(--ink); }
+.name-wrap { padding: 34px 18px 26px; display: grid; gap: 10px; justify-items: center; border-bottom: 1px solid var(--line); }
+.name { font: 600 clamp(44px, 9vw, 96px)/1 var(--sans); letter-spacing: -.03em; display: flex; min-height: 1em; }
+.name span { display: inline-block; }
+.name .cur { color: var(--accent); }
+.name .caret { width: .08em; background: var(--accent); margin-left: .04em; animation: blink 1s steps(1) infinite; }
+@keyframes blink { 50% { opacity: 0; } }
+.sub { font: 13px var(--sans); color: var(--dim); text-align: center; }
+.now { padding: 18px; display: grid; gap: 12px; border-bottom: 1px solid var(--line); }
+.now > * { min-width: 0; }
+.now-top { display: flex; justify-content: space-between; gap: 12px; font: 14px var(--sans); flex-wrap: wrap; }
+.now-top .stage { color: var(--dim); }
+.now-top .stage b { color: var(--ink); font-weight: 500; }
+.now-top .tok { font: 13px var(--mono); font-variant-numeric: tabular-nums; color: var(--dim); }
+.now-top .tok b { color: var(--ink); font-weight: 500; }
+.prog { height: 6px; background: var(--soft); border-radius: 99px; overflow: hidden; }
+.prog i { display: block; height: 100%; width: 0; background: var(--accent); border-radius: 99px; }
+.steps { display: grid; grid-template-columns: repeat(33, 1fr); gap: 2px; }
+.steps i { height: 14px; border-radius: 2px; background: var(--soft); }
+.steps i.d { background: var(--faint); }
+.steps i.c { background: var(--accent); }
+.steps-lab { display: flex; justify-content: space-between; font: 11px var(--mono); color: var(--faint); }
+
+.inside { padding: 16px 18px; display: grid; gap: 10px; border-bottom: 1px solid var(--line); }
+.inside > * { min-width: 0; }
+.ihead { display: flex; justify-content: space-between; gap: 12px; font: 500 13px var(--sans); color: var(--ink); flex-wrap: wrap; }
+.dim2 { color: var(--dim); font-weight: 400; }
+.irow { display: grid; grid-template-columns: 150px 1fr; gap: 14px; align-items: center; padding: 8px 10px; border-radius: 8px; transition: background .2s; opacity: .55; }
+.irow.on { background: var(--soft); opacity: 1; }
+.irow.filled { opacity: 1; }
+.irow > * { min-width: 0; }
+.ilab { font: 500 13px var(--sans); display: grid; }
+.ilab small { font: 12px var(--sans); color: var(--dim); }
+.irow.on .ilab { color: var(--accent); }
+.ibody { display: flex; align-items: center; gap: 12px; min-width: 0; }
+.heads { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.head { display: grid; gap: 5px; min-width: 0; }
+.head .k { font: 11px var(--sans); color: var(--dim); }
+.ctx { display: flex; gap: 3px; flex-wrap: wrap; min-height: 28px; }
+.ctx i { font: 500 14px/28px var(--mono); font-style: normal; width: 26px; height: 28px; text-align: center; border-radius: 4px; border: 1px solid var(--line); color: var(--ink); }
+.chip { font: 600 18px/34px var(--mono); width: 34px; height: 34px; text-align: center; border-radius: 6px; background: var(--ink); color: var(--bg); flex: none; }
+.chip:empty { background: var(--soft); }
+.cells { display: grid; gap: 2px; flex: 1; min-width: 0; }
+.cells.c16 { grid-template-columns: repeat(16, 1fr); }
+.cells.c32 { grid-template-columns: repeat(32, 1fr); }
+.cells i { height: 22px; border-radius: 2px; background: var(--soft); }
+#cands { flex: 1; display: grid; gap: 4px; min-width: 0; }
+.inside .note { padding-left: 10px; }
+.cands { padding: 18px; display: grid; gap: 10px; border-bottom: 1px solid var(--line); }
+.cands h3 { margin: 0; font: 500 13px var(--sans); color: var(--dim); }
+.cand { display: grid; grid-template-columns: 28px 1fr 52px; gap: 10px; align-items: center; font: 14px var(--mono); }
+.cand .bar { height: 10px; background: var(--soft); border-radius: 3px; overflow: hidden; }
+.cand .bar i { display: block; height: 100%; background: var(--faint); border-radius: 3px; }
+.cand.pick { color: var(--accent); font-weight: 500; }
+.cand.pick .bar i { background: var(--accent); }
+.cand span:last-child { text-align: right; font-variant-numeric: tabular-nums; }
+.cands .note b { color: var(--ink); font-weight: 500; }
+.totals { display: grid; grid-template-columns: repeat(3, 1fr); }
+.totals div { padding: 16px 18px; display: grid; gap: 2px; }
+.totals div + div { border-left: 1px solid var(--line); }
+.totals b { font: 500 22px var(--mono); font-variant-numeric: tabular-nums; letter-spacing: -.02em; }
+.totals span { font: 12px var(--sans); color: var(--dim); }
+
+.hist { display: grid; gap: 0; }
+.hist h3 { margin: 0 0 8px; font: 500 13px var(--sans); color: var(--dim); }
+.hrow { display: grid; grid-template-columns: 1fr auto auto; gap: 16px; padding: 9px 0; border-top: 1px solid var(--line); font: 13px var(--mono); font-variant-numeric: tabular-nums; }
+.hrow b { font: 500 15px var(--sans); }
+.hrow span { color: var(--dim); text-align: right; }
+footer { font: 12px/1.6 var(--sans); color: var(--dim); max-width: 80ch; }
+
+@media (max-width: 820px) { .grid { grid-template-columns: 1fr; } }
+.postcap { display: none; }
+body.post .app { max-width: none; height: 100%; padding: 34px 48px 30px; grid-template-rows: auto 1fr; gap: 20px; }
+body.post header, body.post aside, body.post .hist, body.post footer { display: none; }
+body.post .postcap { display: flex; justify-content: space-between; align-items: baseline; gap: 20px; font: 500 21px/1.3 var(--sans); }
+body.post .postcap span { font: 14px var(--mono); color: var(--dim); white-space: nowrap; }
+body.post .grid { grid-template-columns: 1fr; height: 100%; }
+body.post .run { height: 100%; }
+body.post .name-wrap { align-content: center; }
+body.post .sub { font-size: 16px; }
+body.post .now-top { font-size: 17px; }
+body.post .cand { font-size: 15px; }
+body.post { --dim: #b9b9b5; }
+body.post .run-head { font-size: 17px; padding: 16px 22px; }
+body.post .run-head .clock { font-size: 26px; font-weight: 500; }
+body.post .now { padding: 22px; gap: 14px; }
+body.post .now-top { font-size: 22px; align-items: baseline; }
+body.post .now-top .tok { font-size: 24px; color: var(--ink); }
+body.post .now-top .tok b { color: var(--accent); }
+body.post .prog { height: 10px; }
+body.post .cands { padding: 20px 22px; }
+body.post .cands h3 { font-size: 17px; }
+body.post .totals div { padding: 18px 22px; }
+body.post .totals b { font-size: 44px; font-weight: 600; }
+body.post .totals span { font-size: 16px; }
+body.post .sub { font-size: 19px; }
+body.post .steps-lab { font-size: 13px; }
+body.post .name-wrap { padding: 14px 18px 12px; }
+body.post .name { font-size: 104px; }
+body.post .inside { padding: 14px 22px; gap: 6px; }
+body.post .ihead { font-size: 16px; }
+body.post .irow { grid-template-columns: 190px 1fr; padding: 7px 12px; }
+body.post .ilab { font-size: 17px; }
+body.post .ilab small { font-size: 14px; }
+body.post .ctx i { width: 34px; height: 34px; font-size: 18px; line-height: 34px; }
+body.post .head .k { font-size: 13px; }
+body.post .cells i { height: 28px; }
+body.post .chip { width: 42px; height: 42px; font-size: 22px; line-height: 42px; }
+body.post #cands { grid-template-columns: repeat(5, 1fr); gap: 4px 18px; }
+body.post .cand { font-size: 17px; grid-template-columns: 30px 1fr 64px; gap: 8px; }
+body.post .cand .bar { height: 10px; }
+body.post .inside .note, body.post .steps-lab { display: none; }
+body.post .now { padding: 16px 22px; gap: 12px; }
+body.post .totals div { padding: 14px 22px; }
+body.post .totals b { font-size: 38px; }
+body.post .run { grid-template-rows: auto auto 1fr auto auto; }
+@media (max-width: 480px) { .totals b { font-size: 17px; } .steps i { height: 10px; } }
+@media (prefers-reduced-motion: reduce) { .dot.on, .name .caret { animation: none; } }
+</style>
+
+<div class="app">
+  <div class="postcap">A 5,296-param model running on the computer compiled into Qwen3.5-2B<span>replay · real token counts</span></div>
+  <header>
+    <div class="logo">qwenGPU <span>playground</span></div>
+    <span class="badge">replay</span>
+    <div class="gh">GPU by <a href="https://github.com/vixhal-baraiya/qwenGPU">qwenGPU</a></div>
+  </header>
+
+  <div class="grid">
+    <aside class="panel">
+      <div class="field">
+        <div class="k">Host model</div>
+        <div class="select">Qwen3.5-2B · qgpu<small>45 compiled DeltaNet layers, bf16</small></div>
+      </div>
+      <div class="field">
+        <div class="k">Running on it</div>
+        <div class="select">tiny-names · 5,296 params<small>int8 transformer, 2 layers, trained on 32K names</small></div>
+      </div>
+      <div class="field">
+        <div class="k">Speed</div>
+        <div class="seg" role="group" aria-label="Speed">
+          <button type="button" id="sp-fast" aria-pressed="true">Fast-forward</button>
+          <button type="button" id="sp-real" aria-pressed="false">Real (9 tok/s)</button>
+        </div>
+      </div>
+      <button type="button" class="go" id="go">Generate a name</button>
+      <div class="specs">
+        <div>GPU<b>4 cores · 126 words</b></div>
+        <div>kernels per letter<b>33 launches</b></div>
+        <div>measured speed<b>9 tokens/s, M4</b></div>
+      </div>
+      <p class="note">Every token Qwen writes is one step of a tiny computer compiled into its weights. That computer runs the name model, one kernel launch at a time.</p>
+    </aside>
+
+    <section class="panel run" aria-live="polite">
+      <div class="run-head"><span class="dot" id="dot"></span><span id="state">Ready</span><span class="clock" id="clock" title="Time this would take inside Qwen on a MacBook M4">0:00:00</span></div>
+      <div class="name-wrap">
+        <div class="name" id="name"></div>
+        <div class="sub" id="sub"></div>
+      </div>
+      <div class="inside">
+        <div class="ihead"><span>Inside the tiny model</span><span class="dim2">real values, computed by Qwen's tokens</span></div>
+        <div class="irow" id="r-in"><div class="ilab">input<small>letter → 16 numbers</small></div><div class="ibody"><span class="chip" id="in-ch"></span><div class="cells c16" id="emb"></div></div></div>
+        <div class="irow" id="r-a1"><div class="ilab">layer 1<small>attention</small></div><div class="ibody heads">
+          <div class="head"><span class="k">head 1 looks at</span><div class="ctx" id="a1h0"></div></div>
+          <div class="head"><span class="k">head 2 looks at</span><div class="ctx" id="a1h1"></div></div></div></div>
+        <div class="irow" id="r-m1"><div class="ilab">layer 1<small>MLP · 32 neurons</small></div><div class="ibody"><div class="cells c32" id="m1"></div></div></div>
+        <div class="irow" id="r-a2"><div class="ilab">layer 2<small>attention</small></div><div class="ibody heads">
+          <div class="head"><span class="k">head 1 looks at</span><div class="ctx" id="a2h0"></div></div>
+          <div class="head"><span class="k">head 2 looks at</span><div class="ctx" id="a2h1"></div></div></div></div>
+        <div class="irow" id="r-m2"><div class="ilab">layer 2<small>MLP · 32 neurons</small></div><div class="ibody"><div class="cells c32" id="m2"></div></div></div>
+        <div class="irow" id="r-out"><div class="ilab">output<small id="cand-h">next letter</small></div><div class="ibody"><div id="cands"></div></div></div>
+        <p class="note" id="cand-note"></p>
+      </div>
+      <div class="now">
+        <div class="now-top"><span class="stage" id="stage"></span><span class="tok" id="tok"></span></div>
+        <div class="prog"><i id="prog"></i></div>
+        <div class="steps" id="steps"></div>
+        <div class="steps-lab"><span>embed</span><span>layer 1</span><span>layer 2</span><span>pick</span></div>
+      </div>
+      <div class="totals">
+        <div><b id="t-tok">0</b><span>tokens Qwen wrote</span></div>
+        <div><b id="t-l">0</b><span>kernel launches</span></div>
+        <div><b id="t-time">0m</b><span>Qwen time on an M4</span></div>
+      </div>
+    </section>
+  </div>
+
+  <section class="panel hist">
+    <h3>Generated</h3>
+    <div id="hist"></div>
+  </section>
+
+  <footer>This is a replay. The names, letter probabilities and token counts are real: they come from the int8 model and the qgpu simulator, which writes the same tokens as Qwen. The model often invents names, so these are the samples that came out as popular real names. One letter, the z in the first name, was run inside Qwen for real: 55,497 tokens, 1 h 43 min, 0 errors. Everything else is fast-forwarded at that measured speed.</footer>
+</div>
+
+<script src="names.js"></script>
+<script>
+(() => {
+  const $ = id => document.getElementById(id);
+  const D = window.NAMES, SAMPLE = 2742, RATE = 55497 / 6183;
+  const PER = D.perPos.map(n => n + SAMPLE); // tokens per letter at each position, sample launch included
+  // tokens of each of the 33 launches at position 0, from the real run
+  const L0 = [712, 941, 2028, 2056, 2056, 272, 245, 2020, 2032, 941, 1780, 1780, 4160, 1704, 1704, 941, 2028, 2056, 2056, 272, 245, 2020, 2032, 941, 1780, 1780, 4160, 1704, 1704, 941, 1780, 1884, 2742];
+  const STAGE = ["reading the previous letter",
+    ...[1, 2].flatMap(l => ["normalize", "attention: queries", "attention: keys", "attention: values", "attention: scores", "attention: softmax", "attention: mix", "attention: output", "normalize", "feed-forward: up", "feed-forward: up", "feed-forward: SiLU", "feed-forward: down", "feed-forward: down"].map(s => `layer ${l} · ${s}`)),
+    "normalize", "scoring 27 letters", "scoring 27 letters", "picking a letter"];
+  const fmt = n => Math.round(n).toLocaleString("en-US");
+  const hms = s => { s = Math.round(s); return `${Math.floor(s / 3600)}:${String(Math.floor(s / 60) % 60).padStart(2, "0")}:${String(s % 60).padStart(2, "0")}`; };
+  const dur = s => { s = Math.round(s / 60); const h = Math.floor(s / 60), m = s % 60; return h ? `${h}h ${m}m` : `${m}m`; };
+  const show = ch => ch === "." ? "" : ch;
+  const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  $("steps").innerHTML = L0.map(() => "<i></i>").join("");
+  const stepEls = [...$("steps").children];
+  const ORDER = [1, 0, ...D.names.map((_, i) => i).slice(2)];
+  let fast = true, running = false, next = 1, hist = [];
+
+  const cands = (st, final) => {
+    const top = st.top.slice();
+    if (!top.some(([c]) => c === st.c)) top.push([st.c, st.p]);
+    $("cands").innerHTML = top.map(([c, p]) => `<div class="cand ${final && c === st.c ? "pick" : ""}"><span>${c === "." ? "end" : c}</span><div class="bar"><i style="width:${Math.max(1.5, p * 100)}%"></i></div><span>${(p * 100).toFixed(1)}%</span></div>`).join("");
+    $("cand-note").innerHTML = final
+      ? (st.c === "." ? `It picked <b>end of name</b> (${(st.p * 100).toFixed(1)}%).` : `It sampled <b>${st.c}</b> (${(st.p * 100).toFixed(1)}%). Sampling, not always the top choice, is why names vary.`)
+      : "Computing…";
+  };
+
+  // the tiny model's real values at one position, revealed as Qwen reaches each launch
+  const ROWS = ["r-in", "r-a1", "r-m1", "r-a2", "r-m2", "r-out"];
+  const rowOf = li => li === 0 ? 0 : li <= 8 ? 1 : li <= 14 ? 2 : li <= 22 ? 3 : li <= 28 ? 4 : 5;
+  const READY = [1, 7, 13, 21, 27]; // launch after which each row's values exist
+  const col = (v, m) => { const a = Math.min(1, Math.abs(v) / (m || 1)); return v >= 0 ? `rgba(229,72,77,${.12 + .88 * a})` : `rgba(91,141,239,${.12 + .88 * a})`; };
+  const cellsHTML = (vals, n) => { const m = vals ? Math.max(...vals.map(Math.abs)) : 1; return Array.from({ length: n }, (_, i) => `<i style="${vals ? `background:${col(vals[i], m)}` : ""}" title="${vals ? vals[i] : ""}"></i>`).join(""); };
+  const ctxHTML = (w, ctx) => { if (!w) return ctx.map(c => `<i>${c}</i>`).join(""); const m = Math.max(...w); return ctx.map((c, i) => `<i style="background:rgba(229,72,77,${(w[i] / m) * .9});border-color:transparent" title="${(w[i] * 100).toFixed(0)}%">${c}</i>`).join(""); };
+  let shown = -1;
+  const inside = (st, ctx, li) => {
+    const have = li < 0 ? 5 : READY.filter(r => li >= r).length;
+    ROWS.forEach((r, i) => { $(r).classList.toggle("on", li >= 0 && i === rowOf(li)); $(r).classList.toggle("filled", li < 0); });
+    const key = `${ctx.length}:${have}`;
+    if (key === shown) return; shown = key;
+    $("in-ch").textContent = ctx[ctx.length - 1];
+    $("emb").innerHTML = cellsHTML(have >= 1 ? st.emb : null, 16);
+    for (const l of [1, 2]) {
+      const a = have >= (l === 1 ? 2 : 4), m = have >= (l === 1 ? 3 : 5);
+      $(`a${l}h0`).innerHTML = ctxHTML(a ? st.att[l - 1][0] : null, ctx);
+      $(`a${l}h1`).innerHTML = ctxHTML(a ? st.att[l - 1][1] : null, ctx);
+      $(`m${l}`).innerHTML = cellsHTML(m ? st.mlp[l - 1] : null, 32);
+    }
+  };
+
+  const totals = (tok, launches) => {
+    $("t-tok").textContent = fmt(tok);
+    $("t-l").textContent = fmt(launches);
+    $("t-time").textContent = dur(tok / RATE);
+    $("clock").textContent = hms(tok / RATE);
+  };
+
+  const renderName = (letters, cur) => {
+    $("name").innerHTML = letters.map((c, i) => `<span class="${i === cur ? "cur" : ""}">${c}</span>`).join("") + (running ? `<span class="caret"></span>` : "");
+  };
+
+  const histRow = h => `<div class="hrow"><b>${h.name}</b><span>${fmt(h.tok)} tokens</span><span>${dur(h.tok / RATE)} in Qwen</span></div>`;
+  const drawHist = () => { $("hist").innerHTML = hist.map(histRow).join("") || `<p class="note">Names you generate appear here.</p>`; };
+
+  // finished state for one name (shown at rest)
+  const finish = (idx, steps) => {
+    const letters = steps.map(s => show(s.c)).filter(Boolean);
+    const tok = steps.reduce((a, _, t) => a + PER[t], 0);
+    running = false;
+    renderName(letters, -1);
+    $("sub").textContent = `${steps.length} letters including the end · ${fmt(tok)} tokens · ${dur(tok / RATE)} inside Qwen`;
+    $("dot").className = "dot done"; $("state").textContent = "Done";
+    $("stage").innerHTML = `<b>Done.</b> ${steps.length * 33} kernel launches.`;
+    $("tok").innerHTML = "";
+    $("prog").style.width = "100%";
+    stepEls.forEach(e => e.className = "d");
+    cands(steps[steps.length - 1], true);
+    $("cand-h").textContent = "last decision: end?";
+    shown = -1; inside(steps[steps.length - 1], ["·", ...letters], -1);
+    totals(tok, steps.length * 33);
+    return { name: letters.join(""), tok };
+  };
+
+  const generate = () => {
+    if (running) return;
+    const idx = ORDER[next]; next = (next + 1) % ORDER.length;
+    const steps = D.names[idx];
+    running = true; $("go").disabled = true;
+    $("dot").className = "dot on"; $("state").textContent = "Running on Qwen";
+    $("cand-h").textContent = "next letter";
+    $("sub").textContent = "computing inside Qwen…";
+    const letters = [];
+    let t = 0, done = 0, tokBefore = 0, last = performance.now();
+    const letterMs = n => fast ? 900 + n / 60 : n / RATE * 1000;
+    const frame = now => {
+      const dt = now - last; last = now;
+      const total = PER[t];
+      done = Math.min(total, done + total * dt / letterMs(total));
+      const f = done / total;
+      // which launch: scale position 0's launch sizes to this position
+      let acc = 0, li = 0; const sum = L0.reduce((a, b) => a + b, 0);
+      while (li < 32 && acc + L0[li] / sum <= f) { acc += L0[li] / sum; li++; }
+      stepEls.forEach((e, i) => e.className = i < li ? "d" : i === li ? "c" : "");
+      $("stage").innerHTML = `Letter ${t + 1} · <b>${STAGE[li]}</b>`;
+      $("tok").innerHTML = `<b>${fmt(done)}</b> / ${fmt(total)} tokens · launch ${li + 1}/33`;
+      $("prog").style.width = `${f * 100}%`;
+      $("sub").textContent = idx === 0 && t === 0 ? "this letter really ran inside Qwen: 55,497 tokens, 1h 43m, 0 errors" : "computing inside Qwen…";
+      renderName(letters, -1);
+      inside(steps[t], ["·", ...letters], li);
+      totals(tokBefore + done, t * 33 + li);
+      if (f >= 1) {
+        const st = steps[t];
+        cands(st, true);
+        $("cand-h").textContent = `letter ${t + 1}: the choice`;
+        if (st.c !== ".") letters.push(st.c);
+        renderName(letters, letters.length - 1);
+        tokBefore += total; t++; done = 0;
+        if (t >= steps.length) {
+          const h = finish(idx, steps);
+          hist.unshift(h); drawHist();
+          $("go").disabled = false;
+          if (window.POST) setTimeout(generate, 1600);
+          return;
+        }
+        setTimeout(() => { last = performance.now(); requestAnimationFrame(frame); }, fast ? 450 : 0);
+        return;
+      }
+      requestAnimationFrame(frame);
+    };
+    $("cands").innerHTML = ""; $("cand-note").textContent = "Computing…";
+    requestAnimationFrame(frame);
+  };
+
+  $("go").addEventListener("click", generate);
+  const setSpeed = f => { fast = f; $("sp-fast").setAttribute("aria-pressed", f); $("sp-real").setAttribute("aria-pressed", !f); };
+  $("sp-fast").addEventListener("click", () => setSpeed(true));
+  $("sp-real").addEventListener("click", () => setSpeed(false));
+
+  // at rest: the first name, whose first letter z really ran inside Qwen
+  if (location.hash === "#post") {
+    document.body.classList.add("post");
+    window.POST = true;
+    next = 0;
+    setTimeout(generate, 700);
+  } else {
+    hist.push(finish(ORDER[0], D.names[ORDER[0]]));
+    drawHist();
+  }
+  if (reduce) setSpeed(true);
+})();
+</script>
