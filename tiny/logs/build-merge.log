@@ -1,0 +1,24 @@
+overlay: 4148 dims, 13219 units, 4354 key channels and 2093 output gates switched off on text, |q| <= 3.177e+04
+circuit: 45 layers, 1060 slots; hidden 2048 -> 3200
+W1102 15:07:03.273000 16835 .venv/lib/python3.14/site-packages/torch/distributed/elastic/multiprocessing/redirects.py:35] NOTE: Redirects are currently not supported in MacOs.
+Loading weights:   0%|          | 0/617 [00:00<?, ?it/s]Loading weights: 100%|██████████| 617/617 [00:00<00:00, 11837.69it/s]
+[transformers] `causal_conv1d_fn` is falling back to its reference PyTorch implementation because `causal_conv1d` is not installed. This is correct but much slower; install `causal_conv1d` for the optimized kernel.
+[transformers] `chunk_gated_delta_rule` is falling back to its reference PyTorch implementation because `flash-linear-attention` is not installed. This is correct but much slower; install `flash-linear-attention` for the optimized kernel.
+      235.86 real       233.97 user        27.13 sys
+          8792555520  maximum resident set size
+                   0  average shared memory size
+                   0  average unshared data size
+                   0  average unshared stack size
+             5436892  page reclaims
+              418004  page faults
+                   0  swaps
+                   0  block input operations
+                   0  block output operations
+                   1  messages sent
+                   1  messages received
+                   1  signals received
+               11763  voluntary context switches
+             7670406  involuntary context switches
+           124558292  instructions retired
+            55589249  cycles elapsed
+            10994192  peak memory footprint

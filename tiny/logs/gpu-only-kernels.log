@@ -1,0 +1,10 @@
+mm_pair    2028 tokens written by the model in   250s (8.1/s): run_blocks identical, numpy reference identical
+mm_byte    2056 tokens written by the model in   252s (8.2/s): run_blocks identical, numpy reference identical
+mm_raw     1780 tokens written by the model in   198s (9.0/s): run_blocks identical, numpy reference identical
+mm_res     1704 tokens written by the model in   207s (8.2/s): run_blocks identical, numpy reference identical
+embed       712 tokens written by the model in    90s (7.9/s): run_blocks identical, numpy reference identical
+rmsnorm     941 tokens written by the model in   106s (8.9/s): run_blocks identical, numpy reference identical
+softmax    1808 tokens written by the model in   198s (9.2/s): run_blocks identical, numpy reference identical
+av         3924 tokens written by the model in   426s (9.2/s): run_blocks identical, numpy reference identical
+silu       4160 tokens written by the model in   451s (9.2/s): run_blocks identical, numpy reference identical
+sample     2742 tokens written by the model in   297s (9.2/s): run_blocks identical, numpy reference identical

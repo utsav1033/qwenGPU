@@ -1,0 +1,8 @@
+1: 'z'                reference 'z'                match (33 launches, 6182.5s)
+
+1 names, 1 generated characters (end tokens included) on merged: token for token identical to the numpy integer reference, every launch's output too
+launches: 33 (33.0 per character)
+chip tokens: 55497 written by the GPU (55497 per character), 22141 fed by the host (22141 per character); 3980 machine-block records (3980 per character)
+verified launches: 33/33
+generated tokens by kernel per character: {'mm_raw': 11328, 'mm_res': 10880, 'silu': 8320, 'mm_byte': 8224, 'rmsnorm': 4705, 'mm_pair': 4056, 'av': 4040, 'sample': 2742, 'embed': 712, 'softmax': 490}
+6183s

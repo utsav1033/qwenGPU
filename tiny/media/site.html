@@ -1,0 +1,450 @@
+<title>Neural Net in a Neural Net</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,800&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500&display=swap">
+<style>
+/* Layout: a silicon die you scroll down through. Hero stack, a replay of the real token stream, one launch's skyline, the tricks. Single dark look on purpose. */
+:root {
+  color-scheme: dark;
+  --die: #121015; --panel: #1a171f; --trace: #29242f; --grid: #1d1a21;
+  --ink: #efe9e0; --dim: #978f87; --faint: #5f5862;
+  --copper: #df8f50; --teal: #74b8c4; --lav: #a99be0; --leaf: #a3c77c;
+  --display: "Bricolage Grotesque", "Avenir Next", system-ui, sans-serif;
+  --body: "IBM Plex Sans", system-ui, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0; background: var(--die); color: var(--ink); font: 16px/1.55 var(--body);
+  background-image: linear-gradient(var(--grid) 1px, transparent 1px), linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+  background-size: 44px 44px; background-position: -1px -1px;
+}
+.wrap { max-width: 1180px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 36px 80px; display: grid; gap: 96px; }
+h1, h2, h3 { font-family: var(--display); margin: 0; text-wrap: balance; }
+h1 { font-size: clamp(2.6rem, 7vw, 5.4rem); line-height: .96; font-weight: 800; letter-spacing: -.03em; }
+h1 em { font-style: normal; color: var(--copper); }
+h2 { font-size: clamp(1.7rem, 3.6vw, 2.6rem); font-weight: 800; line-height: 1.02; letter-spacing: -.02em; }
+h3 { font-size: 1.2rem; font-weight: 500; }
+p { margin: 0; max-width: 62ch; }
+.eyebrow { font: 500 12px/1 var(--mono); letter-spacing: .16em; text-transform: uppercase; color: var(--copper); }
+.dim { color: var(--dim); }
+.mono { font-family: var(--mono); }
+section { display: grid; gap: 22px; }
+.head { display: grid; gap: 12px; }
+
+/* hero */
+.hero { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(28px, 5vw, 64px); align-items: center; }
+.hero > * { min-width: 0; }
+.hero-text { display: grid; gap: 22px; }
+.lede { font-size: 1.12rem; color: var(--dim); }
+.lede b { color: var(--ink); font-weight: 500; }
+.lede a { color: var(--ink); text-decoration-color: var(--copper); text-underline-offset: 3px; }
+.fine { font: 12px/1.6 var(--mono); color: var(--faint); max-width: 60ch; }
+.nums { display: flex; flex-wrap: wrap; gap: 14px 34px; }
+.nums div b { display: block; font: 600 1.9rem/1 var(--mono); font-variant-numeric: tabular-nums; }
+.nums div span { font: 12px var(--mono); color: var(--dim); }
+.nums .ok b { color: var(--leaf); }
+
+.stack .box { border: 1.5px solid var(--c); border-radius: 6px; padding: 10px 12px 12px; display: grid; gap: 9px; background: var(--bg, transparent); position: relative; animation: glow 4s ease-in-out infinite; animation-delay: calc(var(--d) * .45s); }
+.stack .tag { font: 500 12px/1.25 var(--mono); color: var(--c); display: flex; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+.stack .tag i { font-style: normal; color: var(--dim); font-weight: 400; }
+.b0 { --c: #6f6872; --d: 0; background: var(--die); }
+.b1 { --c: var(--teal); --bg: rgba(116,184,196,.05); --d: 1; }
+.b2 { --c: var(--copper); --bg: rgba(223,143,80,.06); --d: 2; }
+.b3 { --c: var(--lav); --bg: rgba(169,155,224,.05); --d: 3; }
+.b4 { --c: var(--leaf); --bg: rgba(163,199,124,.06); --d: 4; }
+@keyframes glow { 0%, 70%, 100% { box-shadow: 0 0 0 0 transparent; } 35% { box-shadow: 0 0 22px -4px var(--c); } }
+.feed { font: 11px/1.2 var(--mono); color: var(--faint); white-space: nowrap; overflow: hidden; height: 14px; }
+.feed .e { color: var(--copper); }
+.chips { display: flex; flex-wrap: wrap; gap: 4px; }
+.chips code { font: 11px/1 var(--mono); padding: 4px 6px; border: 1px solid var(--trace); border-radius: 3px; color: var(--dim); background: var(--die); }
+.chips code.on { color: var(--die); background: var(--kc); border-color: var(--kc); }
+.out { display: flex; align-items: center; gap: 14px; font: 12px/1.45 var(--mono); color: var(--dim); }
+.out b { color: var(--leaf); font-weight: 500; }
+.zl { width: 58px; height: 58px; display: grid; place-items: center; font: 800 2.6rem/1 var(--display); color: var(--ink); border: 1.5px solid var(--leaf); border-radius: 5px; background: var(--die); }
+
+/* player */
+.player { background: var(--panel); border: 1px solid var(--trace); border-radius: 8px; padding: clamp(14px, 3vw, 26px); display: grid; gap: 18px; }
+.player > * { min-width: 0; }
+.ctrl { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 16px; }
+button, .seg button { font: 500 13px var(--mono); color: var(--ink); background: var(--die); border: 1px solid var(--trace); border-radius: 4px; padding: 8px 14px; cursor: pointer; }
+button:hover { border-color: var(--copper); }
+button:focus-visible { outline: 2px solid var(--copper); outline-offset: 2px; }
+#play { background: var(--copper); color: var(--die); border-color: var(--copper); min-width: 96px; }
+.seg { display: inline-flex; border: 1px solid var(--trace); border-radius: 4px; overflow: hidden; }
+.seg button { border: 0; border-radius: 0; background: transparent; color: var(--dim); padding: 8px 11px; }
+.seg button[aria-pressed="true"] { background: var(--trace); color: var(--ink); }
+.eta { font: 12px var(--mono); color: var(--dim); margin-left: auto; font-variant-numeric: tabular-nums; }
+.readout { display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px 22px; }
+.big { font: 600 clamp(2.4rem, 7vw, 4.2rem)/1 var(--mono); font-variant-numeric: tabular-nums; letter-spacing: -.02em; }
+.readout .lbl { font: 13px var(--mono); color: var(--dim); }
+.readout .now { font: 13px var(--mono); color: var(--dim); margin-left: auto; font-variant-numeric: tabular-nums; }
+.readout .now b { color: var(--ink); font-weight: 500; }
+.ticker { font: 12px/1 var(--mono); color: var(--faint); white-space: nowrap; overflow: hidden; height: 14px; }
+.ticker .e { color: var(--copper); }
+
+.timeline { display: grid; gap: 6px; }
+.groups, .segs { display: flex; gap: 2px; }
+.groups div { font: 11px var(--mono); color: var(--dim); border-top: 1px solid var(--faint); padding-top: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+.segs button { flex: var(--w) 1 0; min-width: 0; height: 30px; padding: 0; border: 0; border-radius: 2px; background: var(--kc); opacity: .28; cursor: pointer; position: relative; }
+.segs button.done { opacity: .75; }
+.segs button.cur { opacity: 1; box-shadow: 0 0 0 2px var(--ink); }
+.segs button.sel { outline: 2px solid var(--ink); outline-offset: 2px; }
+.strip-wrap { overflow: hidden; border-radius: 3px; }
+canvas { display: block; max-width: 100%; }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 18px; font: 12px var(--mono); color: var(--dim); }
+.legend span { display: inline-flex; align-items: center; gap: 6px; }
+.legend i { width: 10px; height: 10px; border-radius: 2px; }
+
+/* skyline */
+.sky { background: var(--panel); border: 1px solid var(--trace); border-radius: 8px; padding: clamp(14px, 3vw, 26px); display: grid; gap: 14px; }
+.sky > * { min-width: 0; }
+.sky-head { display: flex; flex-wrap: wrap; gap: 6px 20px; align-items: baseline; font: 13px var(--mono); color: var(--dim); }
+.sky-head b { color: var(--ink); font-weight: 500; }
+.sky-head .k { font: 600 1.3rem var(--mono); color: var(--kc, var(--ink)); }
+.sky-scroll { overflow-x: auto; }
+
+/* tricks */
+.tricks { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+.trick { background: var(--panel); border: 1px solid var(--trace); border-radius: 8px; padding: 20px; display: grid; gap: 12px; align-content: start; }
+.trick > * { min-width: 0; }
+.trick p { color: var(--dim); font-size: .95rem; }
+.trick .n { font: 500 11px var(--mono); color: var(--copper); letter-spacing: .1em; text-transform: uppercase; }
+.bits { display: grid; gap: 6px; font: 11px var(--mono); }
+.word { display: flex; gap: 2px; }
+.word span { flex: 1; text-align: center; padding: 6px 0; border-radius: 2px; background: var(--die); border: 1px solid var(--trace); color: var(--dim); }
+.word span.hot { background: rgba(163,199,124,.18); border-color: var(--leaf); color: var(--ink); }
+.word span.a { border-color: var(--copper); color: var(--ink); }
+.word span.x { border-color: var(--teal); color: var(--ink); }
+.word .lab { flex: 0 0 64px; background: none; border: 0; text-align: left; padding-left: 0; }
+.trick svg { width: 100%; height: auto; display: block; }
+.trick svg text { font: 10px var(--mono); fill: var(--dim); }
+table.nw { font: 12px var(--mono); border-collapse: collapse; width: 100%; font-variant-numeric: tabular-nums; }
+table.nw td, table.nw th { padding: 5px 0; border-bottom: 1px solid var(--trace); text-align: left; }
+table.nw th { color: var(--dim); font-weight: 400; }
+table.nw td:last-child, table.nw th:last-child { text-align: right; }
+
+/* names + foot */
+.names { display: flex; flex-wrap: wrap; gap: 8px; }
+.names span { font: 16px var(--mono); padding: 7px 12px; border: 1px solid var(--trace); border-radius: 4px; background: var(--panel); }
+.names span:first-letter { color: var(--copper); }
+.foot { font: 12px/1.7 var(--mono); color: var(--dim); border-top: 1px solid var(--trace); padding-top: 20px; display: grid; gap: 6px; }
+.foot a { color: var(--teal); }
+
+@media (max-width: 900px) { .hero { grid-template-columns: 1fr; } .tricks { grid-template-columns: 1fr; } }
+@media (max-width: 560px) { .groups div { font-size: 9px; } .eta { margin-left: 0; width: 100%; } }
+@media (prefers-reduced-motion: reduce) { .stack .box { animation: none; } }
+</style>
+
+<div class="wrap">
+
+<section class="hero" aria-label="Summary">
+  <div class="hero-text">
+    <div class="eyebrow">qwenGPU · tiny</div>
+    <h1>A neural net, on a GPU, <em>inside</em> a neural net.</h1>
+    <p class="lede"><a href="https://github.com/vixhal-baraiya/qwenGPU">qwenGPU</a> compiles a tiny computer into Qwen3.5-2B's layers: <b>every token the model writes is one step of the machine</b>. I wrote GPU kernels for it and ran a <b>5,296-parameter transformer</b> on it, a model that makes up names.</p>
+    <div class="nums">
+      <div><b>55,497</b><span>tokens Qwen wrote for one letter</span></div>
+      <div class="ok"><b>0</b><span>wrong tokens</span></div>
+      <div><b>1h 43m</b><span>per letter, on a MacBook</span></div>
+    </div>
+    <p class="fine">The computer's weights are compiled by hand, not learned, and use Qwen's architecture (45 Gated DeltaNet layers). Qwen's language layers were removed so it fits in 16 GB.</p>
+  </div>
+
+  <div class="stack" aria-label="What runs inside what">
+    <div class="box b0"><div class="tag">MacBook · M4 · 16 GB <i>PyTorch</i></div>
+      <div class="box b1"><div class="tag">Qwen3.5-2B · 45 compiled DeltaNet layers <i>writes tokens</i></div>
+        <div class="feed" id="feed" aria-hidden="true"></div>
+        <div class="box b2"><div class="tag">qgpu · 4 cores · 126 words of memory · integers only <i>memory lives in the layers' state</i></div>
+          <div class="box b3"><div class="tag">10 GPU kernels I wrote <i>CUDA → clang → qgpu</i></div>
+            <div class="chips" id="chips"></div>
+            <div class="box b4"><div class="tag">tiny name generator · 5,296 params <i>int8</i></div>
+              <div class="out"><div class="zl">z</div><span>output: first letter of a new name<br><b>same bits as running it in Python</b></span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section aria-label="Replay">
+  <div class="head">
+    <div class="eyebrow">Replay</div>
+    <h2>Watch Qwen compute one letter</h2>
+    <p class="dim">This is the exact stream of 55,497 tokens Qwen wrote to compute the letter <span class="mono">z</span>, in order. <span class="mono" style="color:var(--copper)">EXEC</span> means "run the next block of instructions". The grey hex tokens after it are the values those instructions produced. Every token was compared with a reference simulator, and none was wrong.</p>
+  </div>
+  <div class="player">
+    <div class="ctrl">
+      <button type="button" id="play">▶ Play</button>
+      <div class="seg" role="group" aria-label="Speed">
+        <button type="button" data-s="1">real speed</button>
+        <button type="button" data-s="100">100×</button>
+        <button type="button" data-s="600" aria-pressed="true">600×</button>
+        <button type="button" data-s="3000">3000×</button>
+      </div>
+      <span class="eta" id="eta"></span>
+    </div>
+    <div class="readout">
+      <span class="big" id="count">55,497</span>
+      <span class="lbl">tokens written</span>
+      <span class="now" id="now"></span>
+    </div>
+    <div class="ticker" id="ticker" aria-hidden="true"></div>
+    <div class="timeline">
+      <div class="groups" id="groups"></div>
+      <div class="segs" id="segs"></div>
+    </div>
+    <div class="strip-wrap"><canvas id="strip" aria-label="All 55,497 tokens, 4 per cell, in the order written"></canvas></div>
+    <div class="legend" id="legend"></div>
+  </div>
+</section>
+
+<section aria-label="One launch">
+  <div class="head">
+    <div class="eyebrow">Zoom in</div>
+    <h2>One kernel, block by block</h2>
+    <p class="dim">Each bar is one block of instructions. Its height is the number of tokens Qwen wrote for it: one EXEC at the bottom (copper), then 8 tokens for every value the block computed. Click any launch in the timeline above to see it here.</p>
+  </div>
+  <div class="sky">
+    <div class="sky-head" id="skyhead"></div>
+    <div class="sky-scroll"><canvas id="sky"></canvas></div>
+  </div>
+</section>
+
+<section aria-label="How the kernels work">
+  <div class="head">
+    <div class="eyebrow">The tricks</div>
+    <h2>Doing transformer math on a GPU with no floats</h2>
+    <p class="dim">The GPU has 4 lanes, 126 words of memory, 15 registers, one multiply per cycle and no division. So every kernel is integer arithmetic, designed around those limits.</p>
+  </div>
+  <div class="tricks">
+    <div class="trick">
+      <div class="n">matmul</div>
+      <h3>Two int8 products in one multiply</h3>
+      <div class="bits">
+        <div class="word"><span class="lab">weights</span><span class="a">0</span><span class="a">a₂</span><span class="a">0</span><span class="a">a₀</span></div>
+        <div class="word"><span class="lab">× input</span><span class="x">x₀</span><span class="x">·</span><span class="x">x₂</span><span class="x">·</span></div>
+        <div class="word"><span class="lab">= bits</span><span class="hot">a₀x₀ + a₂x₂</span><span>junk</span></div>
+      </div>
+      <p>Pack weights as a₀ + a₂·2¹⁶ and inputs as x₂ + x₀·2¹⁶. One 32-bit multiply puts a₀x₀ + a₂x₂ in the top half, exactly. A word of 4 weights costs 5 multiplier ops instead of 12.</p>
+    </div>
+    <div class="trick">
+      <div class="n">softmax · SiLU</div>
+      <h3>exp by squaring ten times</h3>
+      <svg viewBox="0 0 240 110" role="img" aria-label="exp(-z) and its approximation overlap">
+        <line x1="20" y1="95" x2="232" y2="95" stroke="#29242f"/>
+        <line x1="20" y1="8" x2="20" y2="95" stroke="#29242f"/>
+        <path id="expT" fill="none" stroke="#74b8c4" stroke-width="5" stroke-opacity=".35"/>
+        <path id="expA" fill="none" stroke="#df8f50" stroke-width="1.6"/>
+        <text x="24" y="16">1</text><text x="200" y="88">x = 8</text>
+        <text x="120" y="40" fill="#df8f50">(1 − x/1024)¹⁰²⁴</text>
+      </svg>
+      <p>e^−x ≈ (1 − x/1024)^1024: one subtraction, then ten squarings, in fixed point. The orange line is the kernel's formula. The thick teal line under it is the real exp.</p>
+    </div>
+    <div class="trick">
+      <div class="n">attention · SiLU</div>
+      <h3>Division without a divider</h3>
+      <table class="nw"><thead><tr><th>Newton step</th><th>1 / 1.7 ≈</th></tr></thead><tbody id="newton"></tbody></table>
+      <p>No per-thread division, so 1/d is Newton's method: y ← y(2 − dy), from a linear first guess. Three steps hit full 32-bit precision. RMSNorm's 1/√ is a 15-step bitwise search.</p>
+    </div>
+  </div>
+</section>
+
+<section aria-label="Output">
+  <div class="head">
+    <div class="eyebrow">What it writes</div>
+    <h2>Names from the integer model</h2>
+    <p class="dim">Trained on 32,000 names from Karpathy's makemore. One letter took 1h 43m inside Qwen, so these 16 names ran on the qgpu simulator, the same machine in plain Python. Every one matches the numpy version of the model.</p>
+  </div>
+  <div class="names">
+    <span>abda</span><span>zevery</span><span>kaekoni</span><span>arita</span><span>attonikon</span><span>espaul</span><span>teshard</span><span>abro</span><span>nyiani</span><span>biari</span><span>zakod</span><span>jonthee</span><span>rai</span><span>prodov</span><span>jorness</span><span>yadelyn</span>
+  </div>
+</section>
+
+<div class="foot">
+  <span>GPU-in-the-weights: <a href="https://github.com/vixhal-baraiya/qwenGPU">vixhal-baraiya/qwenGPU</a>. Kernels, int8 model and host engine: <span class="mono">tiny/</span>.</span>
+  <span>The run used Qwen's 45 GPU layers, unchanged in bf16. Its own text layers were left out so the model fits 16 GB.</span>
+</div>
+</div>
+
+<script src="stream.js"></script>
+<script>
+(() => {
+  const S = window.STREAM;
+  const COL = { mm_raw: "#df8f50", mm_res: "#b9703c", mm_byte: "#efb586", mm_pair: "#8c5630", silu: "#a3c77c",
+                rmsnorm: "#a99be0", av: "#74b8c4", softmax: "#4b8c98", sample: "#e8ddce", embed: "#7a727e" };
+  const ROLE = ["embed",
+    ...[1, 2].flatMap(l => ["norm", "q", "k", "v", "scores", "softmax", "attn × V", "out + res", "norm", "up (a)", "up (b)", "SiLU", "down (a) + res", "down (b) + res"].map(r => `L${l} ${r}`)),
+    "final norm", "head (a)", "head (b)", "sample"];
+  const bin = b => Uint8Array.from(atob(b), c => c.charCodeAt(0));
+  const TOK = new Uint32Array(bin(S.tokens).buffer), KIND = bin(S.kinds), N = TOK.length;
+  const L = S.launches.map(([k, n]) => ({ k: S.kernels[k], n }));
+  let o = 0; L.forEach(l => { l.o = o; o += l.n; });
+  const launchAt = i => { let a = 0, b = L.length - 1; while (a < b) { const m = (a + b + 1) >> 1; if (L[m].o <= i) a = m; else b = m - 1; } return a; };
+  const hex = v => v.toString(16).padStart(4, "0");
+  const fmt = n => n.toLocaleString("en-US");
+  const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  // hero
+  const chipOrder = ["embed", "rmsnorm", "mm_pair", "mm_byte", "mm_raw", "mm_res", "softmax", "av", "silu", "sample"];
+  const chips = document.getElementById("chips");
+  chips.innerHTML = chipOrder.map(k => `<code data-k="${k}" style="--kc:${COL[k]}">${k}</code>`).join("");
+  const feed = document.getElementById("feed");
+  let fi = 0;
+  const heroTick = () => {
+    let s = ""; for (let j = 0; j < 26; j++) { const i = (fi + j) % N; s += KIND[i] === 1 ? `<span class="e">EXEC</span> ` : hex(TOK[i]) + " "; }
+    feed.innerHTML = s;
+    const k = L[launchAt(fi % N)].k;
+    chips.querySelectorAll("code").forEach(c => c.classList.toggle("on", c.dataset.k === k));
+    fi = (fi + 9) % N;
+  };
+  heroTick();
+  if (!reduce) setInterval(heroTick, 70);
+
+  // timeline
+  const groups = [["", 0, 1], ["layer 1", 1, 15], ["layer 2", 15, 29], ["head", 29, 33]];
+  const gEl = document.getElementById("groups"), sEl = document.getElementById("segs");
+  gEl.innerHTML = groups.map(([n, a, b]) => {
+    const w = L.slice(a, b).reduce((x, l) => x + l.n, 0) + (b - a - 1) * 60;
+    return `<div style="flex:${w} 1 0">${n}</div>`;
+  }).join("");
+  sEl.innerHTML = L.map((l, i) => `<button type="button" style="--w:${l.n};--kc:${COL[l.k]}" data-i="${i}" title="${i + 1}. ${ROLE[i]} · ${l.k} · ${fmt(l.n)} tokens" aria-label="Launch ${i + 1}, ${ROLE[i]}, ${l.k}"></button>`).join("");
+  const segs = [...sEl.children];
+
+  const legend = [["matmuls", "#df8f50"], ["SiLU", "#a3c77c"], ["RMSNorm", "#a99be0"], ["attention", "#74b8c4"], ["softmax", "#4b8c98"], ["sample", "#e8ddce"], ["embed", "#7a727e"]];
+  document.getElementById("legend").innerHTML = legend.map(([n, c]) => `<span><i style="background:${c}"></i>${n}</span>`).join("") +
+    `<span><i style="background:#f6e2d1"></i>cell with an EXEC</span>`;
+
+  // dense strip: 4 tokens per cell
+  const PER = 4, cells = Math.ceil(N / PER);
+  const tint = (h, f) => { const v = parseInt(h.slice(1), 16); const m = x => Math.round(x + (255 - x) * f); return `rgb(${m(v >> 16)},${m((v >> 8) & 255)},${m(v & 255)})`; };
+  const CC = new Array(cells);
+  for (let c = 0; c < cells; c++) {
+    const i = c * PER, k = L[launchAt(i)].k;
+    let ex = false; for (let j = i; j < Math.min(i + PER, N); j++) ex ||= KIND[j] === 1;
+    CC[c] = ex ? tint(COL[k], .5) : COL[k];
+  }
+  const cv = document.getElementById("strip"), ctx = cv.getContext("2d");
+  let geo = null, drawn = 0;
+  const layout = () => {
+    const W = cv.parentElement.clientWidth, dpr = devicePixelRatio || 1;
+    const cols = W < 560 ? 230 : 460, s = W / cols, rows = Math.ceil(cells / cols);
+    cv.width = Math.round(W * dpr); cv.height = Math.round(rows * s * dpr);
+    cv.style.width = W + "px"; cv.style.height = rows * s + "px";
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    geo = { cols, s, g: Math.max(.4, s * .18) };
+    ctx.fillStyle = "#231f28";
+    for (let c = 0; c < cells; c++) ctx.fillRect((c % cols) * s, Math.floor(c / cols) * s, s - geo.g, s - geo.g);
+    drawn = 0;
+  };
+  const paint = n => {
+    const want = Math.ceil(n / PER);
+    if (want < drawn) { layout(); }
+    for (let c = drawn; c < want; c++) {
+      ctx.fillStyle = CC[c];
+      ctx.fillRect((c % geo.cols) * geo.s, Math.floor(c / geo.cols) * geo.s, geo.s - geo.g, geo.s - geo.g);
+    }
+    drawn = Math.max(drawn, want);
+  };
+
+  // skyline of one launch: one bar per machine block, height = its tokens
+  const sky = document.getElementById("sky"), sctx = sky.getContext("2d"), skyHead = document.getElementById("skyhead");
+  let selected = 12;
+  const recordsOf = li => {
+    const l = L[li], recs = []; let cur = null;
+    for (let i = l.o; i < l.o + l.n; i++) {
+      if (KIND[i] === 1 || !cur) { cur = { exec: 0, val: 0, mem: 0 }; recs.push(cur); }
+      if (KIND[i] === 1) cur.exec++; else if (KIND[i] === 0) cur.val++; else cur.mem++;
+    }
+    return recs;
+  };
+  const drawSky = (li, upto = Infinity) => {
+    const l = L[li], recs = recordsOf(li);
+    const maxH = Math.max(...recs.map(r => r.exec + r.val + r.mem));
+    const bw = Math.max(3, Math.min(8, Math.floor((sky.parentElement.clientWidth - 2) / recs.length)));
+    const W = Math.max(sky.parentElement.clientWidth, recs.length * bw), H = 190, dpr = devicePixelRatio || 1;
+    sky.width = W * dpr; sky.height = H * dpr; sky.style.width = W + "px"; sky.style.height = H + "px";
+    sctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    const u = (H - 20) / maxH;
+    let t = 0;
+    sctx.fillStyle = "#29242f"; sctx.fillRect(0, H - 14, W, 1);
+    recs.forEach((r, x) => {
+      if (t >= upto) return;
+      let y = H - 15;
+      const seg = (n, c) => { const h = n * u; sctx.fillStyle = c; sctx.fillRect(x * bw, y - h, bw - 1, h); y -= h; };
+      seg(r.exec, "#df8f50"); seg(r.val, COL[l.k]); seg(r.mem, "#a99be0");
+      t += r.exec + r.val + r.mem;
+    });
+    sctx.fillStyle = "#978f87"; sctx.font = "10px 'IBM Plex Mono', monospace";
+    sctx.fillText(`${maxH} tokens`, 4, 12);
+    skyHead.style.setProperty("--kc", COL[l.k]);
+    skyHead.innerHTML = `<span class="k">${l.k}</span><span>launch <b>${li + 1}/33</b> · ${ROLE[li]}</span><span><b>${fmt(recs.length)}</b> machine blocks</span><span><b>${fmt(l.n)}</b> tokens</span>`;
+    segs.forEach((b, i) => b.classList.toggle("sel", i === li));
+  };
+
+  // player
+  let pos = N, speed = 600, playing = false, last = 0, raf = 0;
+  const countEl = document.getElementById("count"), nowEl = document.getElementById("now"), tickEl = document.getElementById("ticker");
+  const playBtn = document.getElementById("play"), eta = document.getElementById("eta");
+  const RATE = 55497 / 6183; // tokens per second on the M4
+  const dur = s => { s = Math.round(s); const h = Math.floor(s / 3600), m = Math.floor(s / 60) % 60, x = s % 60; return h ? `${h}h ${m}m` : m ? `${m}m ${x}s` : `${x}s`; };
+  const show = () => {
+    const n = Math.floor(pos);
+    paint(n);
+    countEl.textContent = fmt(n);
+    if (n > 0 && n < N) {
+      const li = launchAt(n - 1), l = L[li];
+      nowEl.innerHTML = `launch <b>${li + 1}/33</b> · <b>${l.k}</b> · ${ROLE[li]}`;
+      let s = ""; for (let j = Math.max(0, n - 30); j < n; j++) s += KIND[j] === 1 ? `<span class="e">EXEC ${TOK[j].toString(16)}</span>  ` : hex(TOK[j]) + "  ";
+      tickEl.innerHTML = s;
+      segs.forEach((b, i) => { b.classList.toggle("done", i < li); b.classList.toggle("cur", i === li); });
+      if (li !== selected) { selected = li; drawSky(li); }
+      if (n + RATE * speed * .1 >= N) setTimeout(() => { selected = 12; drawSky(12); }, 400);
+    } else {
+      nowEl.innerHTML = n >= N ? `output: <b>'z'</b>, first letter of a name` : "";
+      tickEl.textContent = n >= N ? "0 wrong tokens · all 33 launches identical to the simulator and to the model run in Python" : "";
+      segs.forEach(b => { b.classList.toggle("done", n >= N); b.classList.remove("cur"); });
+    }
+    eta.textContent = playing ? `${dur((N - pos) / (RATE * speed))} left at this speed · real run: 1h 43m` : `at real speed this takes 1h 43m`;
+  };
+  const frame = ts => {
+    if (!playing) return;
+    const dt = Math.min(.1, (ts - last) / 1000); last = ts;
+    pos = Math.min(N, pos + RATE * speed * dt);
+    show();
+    if (pos >= N) { playing = false; playBtn.textContent = "↻ Replay"; show(); return; }
+    raf = requestAnimationFrame(frame);
+  };
+  playBtn.addEventListener("click", () => {
+    if (playing) { playing = false; playBtn.textContent = "▶ Play"; show(); return; }
+    if (pos >= N) { pos = 0; layout(); }
+    playing = true; playBtn.textContent = "❚❚ Pause"; last = performance.now();
+    raf = requestAnimationFrame(frame);
+  });
+  document.querySelectorAll(".seg button").forEach(b => b.addEventListener("click", () => {
+    speed = +b.dataset.s;
+    document.querySelectorAll(".seg button").forEach(x => x.setAttribute("aria-pressed", x === b));
+    show();
+  }));
+  sEl.addEventListener("click", e => {
+    const b = e.target.closest("button"); if (!b) return;
+    selected = +b.dataset.i; drawSky(selected);
+    document.getElementById("sky").scrollIntoView({ behavior: reduce ? "auto" : "smooth", block: "center" });
+  });
+
+  // exp chart: true exp(-z) vs (1 - z/1024)^1024 for z in [0, 8]
+  const px = z => 20 + z / 8 * 210, py = v => 95 - v * 85;
+  let pt = "", pa = "";
+  for (let i = 0; i <= 80; i++) { const z = i / 10; pt += (i ? "L" : "M") + px(z).toFixed(1) + " " + py(Math.exp(-z)).toFixed(1); pa += (i ? "L" : "M") + px(z).toFixed(1) + " " + py(Math.pow(1 - z / 1024, 1024)).toFixed(1); }
+  document.getElementById("expT").setAttribute("d", pt);
+  document.getElementById("expA").setAttribute("d", pa);
+  // Newton steps for 1/1.7 from the kernel's seed 24/17 - 8/17 d
+  { const d = 1.7; let y = 24 / 17 - 8 / 17 * d, rows = `<tr><td>seed</td><td>${y.toFixed(9)}</td></tr>`;
+    for (let i = 1; i <= 3; i++) { y = y * (2 - d * y); rows += `<tr><td>step ${i}</td><td>${y.toFixed(9)}</td></tr>`; }
+    rows += `<tr><td style="color:var(--leaf)">true</td><td style="color:var(--leaf)">${(1 / d).toFixed(9)}</td></tr>`;
+    document.getElementById("newton").innerHTML = rows; }
+
+  layout(); show(); drawSky(selected);
+  addEventListener("resize", () => { layout(); paint(Math.floor(pos)); drawSky(selected); });
+})();
+</script>

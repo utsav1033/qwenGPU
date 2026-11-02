@@ -1,0 +1,15 @@
+W1102 15:08:14.855000 16900 torch/distributed/elastic/multiprocessing/redirects.py:35] NOTE: Redirects are currently not supported in MacOs.
+Loading weights:   0%|          | 0/1247 [00:00<?, ?it/s]Loading weights:  54%|█████▎    | 668/1247 [00:00<00:00, 6639.36it/s]Loading weights: 100%|██████████| 1247/1247 [00:00<00:00, 6903.92it/s]
+[transformers] `causal_conv1d_fn` is falling back to its reference PyTorch implementation because `causal_conv1d` is not installed. This is correct but much slower; install `causal_conv1d` for the optimized kernel.
+[transformers] `chunk_gated_delta_rule` is falling back to its reference PyTorch implementation because `flash-linear-attention` is not installed. This is correct but much slower; install `flash-linear-attention` for the optimized kernel.
+[transformers] `causal_conv1d_update` is falling back to its reference PyTorch implementation because `causal_conv1d` is not installed. This is correct but much slower; install `causal_conv1d` for the optimized kernel.
+[transformers] `fused_recurrent_gated_delta_rule` is falling back to its reference PyTorch implementation because `flash-linear-attention` is not installed. This is correct but much slower; install `flash-linear-attention` for the optimized kernel.
+Traceback (most recent call last):
+  File "/Users/utsav/Library/Application Support/Claude/scratch-workspaces/82e930df-fdb0-43cd-a0af-bcb6fa7959af/cd2255c1-83d4-47f8-af7e-faf549772531/scratch-2026-11-02-85a949/qwenGPU/tiny/merged_kernels.py", line 35, in <module>
+    main()
+    ~~~~^^
+  File "/Users/utsav/Library/Application Support/Claude/scratch-workspaces/82e930df-fdb0-43cd-a0af-bcb6fa7959af/cd2255c1-83d4-47f8-af7e-faf549772531/scratch-2026-11-02-85a949/qwenGPU/tiny/merged_kernels.py", line 26, in main
+    r = gpu.run(L, L.prepare(name, bufs, sc, th))
+  File "/Users/utsav/Library/Application Support/Claude/scratch-workspaces/82e930df-fdb0-43cd-a0af-bcb6fa7959af/cd2255c1-83d4-47f8-af7e-faf549772531/scratch-2026-11-02-85a949/qwenGPU/tiny/gpu.py", line 146, in run
+    t = int(out.logits[0, -1].argmax())
+torch.OutOfMemoryError: MPS command buffer execution failed: Insufficient Memory (00000008:kIOGPUCommandBufferCallbackErrorOutOfMemory). This error may have been asynchronously reported, so the stack trace below might be incorrect.
