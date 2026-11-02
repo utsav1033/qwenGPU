@@ -1,5 +1,7 @@
 # tiny: a transformer running on the GPU inside Qwen
 
+![What runs inside what: MacBook → Qwen3.5-2B → qgpu → 10 kernels → the tiny transformer](media/hero.png)
+
 [qwenGPU](https://github.com/vixhal-baraiya/qwenGPU) compiles a tiny GPU into Qwen3.5-2B's weights:
 every token the model writes is one step of the machine. This folder runs a small transformer on it.
 
@@ -23,6 +25,19 @@ computes them. It's a replay with real values. [Playground](media/playground.htm
 - **RMSNorm:** 1/√ found one bit at a time.
 - **Memory:** 126 words can't hold the model, so the host streams in one 64-word weight tile per
   launch. One letter takes 33 launches.
+
+Where the tokens go, for one letter:
+
+| Kernel | Tokens | What it does |
+|---|---:|---|
+| matmuls (`mm_raw`, `mm_res`, `mm_byte`, `mm_pair`) | 34,488 | every weight matrix, 64 words at a time |
+| `silu` | 8,320 | the MLP's activation |
+| `rmsnorm` | 4,705 | normalization, 5 per letter |
+| `av` + `softmax` | 4,530 | attention |
+| `sample` | 2,742 | picks the letter |
+| `embed` | 712 | letter + position → 16 numbers |
+
+![Three of the integer tricks](media/tricks.png)
 
 Also found a [qgpu compiler bug](repro/argmax.py) along the way: an argmax always returned 0.
 
