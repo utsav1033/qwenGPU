@@ -13,11 +13,13 @@ residual), rmsnorm, up x 2, silu, down x 2 (+= residual); then rmsnorm, head x 2
 kernels that write the residual stream (embed, mm_res) also leave sum(x^2) for the next norm.
 
 Backends: ref (tiny/ref.py, numpy), sim (kernel.run_blocks), merged (the merged Qwen3.5
-checkpoint; --check compares each launch with run_blocks token for token).
+checkpoint; --check compares each launch with run_blocks token for token), step (the gpu-only
+checkpoint's layers on a CPU core, zero weights left out: tiny/stepper.c; --check too).
 
 Run:
   uv run python tiny/engine.py --backend sim --names 5 --verify     # sim, and ref beside it
   uv run python tiny/engine.py --backend merged --merged build/merged-2b --check --names 1
+  uv run python tiny/engine.py --backend step --merged build/gpu-only --check --names 1
   uv run python tiny/engine.py --eval 200                           # NLL: float vs integer
 """
 
@@ -161,6 +163,9 @@ def backend(name, args):
     if name == "ref":
         return ref.Ref()
     from gpu import Merged, Sim
+    if name == "step":
+        from stepper import Step
+        return GPU(Step(args.merged, check=args.check), verify=args.verify)
     be = Sim() if name == "sim" else Merged(args.merged, args.device, check=args.check)
     return GPU(be, verify=args.verify)
 
@@ -193,13 +198,13 @@ def evaluate(qm, n: int):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--backend", choices=("ref", "sim", "merged"), default="sim")
+    ap.add_argument("--backend", choices=("ref", "sim", "merged", "step"), default="sim")
     ap.add_argument("--names", type=int, default=5)
     ap.add_argument("--seed", type=int, default=0)
     ap.add_argument("--verify", action="store_true",
                     help="check every launch's buffers against the numpy reference")
     ap.add_argument("--check", action="store_true",
-                    help="merged: every launch token for token against kernel.run_blocks")
+                    help="merged, step: every launch token for token against kernel.run_blocks")
     ap.add_argument("--merged", default="build/merged-2b")
     ap.add_argument("--device")
     ap.add_argument("--max-len", type=int, help="stop each name after this many characters")
@@ -236,6 +241,11 @@ def main():
             print(f"verified launches: {st.verified if args.check else st.launches}/{st.launches}")
         print("generated tokens by kernel per character:",
               {k: round(v / chars) for k, v in st.gen_by_kernel.most_common()})
+    be = getattr(eng.dev, "backend", None)
+    if getattr(be, "seconds", 0):
+        print(f"the model's own time: {be.seconds:.0f}s"
+              + (f", {be.tokens} tokens stepped, {be.tokens / be.seconds:.0f} tokens/s"
+                 if getattr(be, "tokens", 0) else ""))
     print(f"{time.time() - t0:.0f}s")
     return 0 if same else 1
 

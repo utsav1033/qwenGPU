@@ -1,0 +1,9 @@
+1: 'zamira'           reference 'zamira'           match (231 launches, 280.2s)
+
+1 names, 7 generated characters (end tokens included) on step: token for token identical to the numpy integer reference, every launch's output too
+launches: 231 (33.0 per character)
+chip tokens: 416581 written by the GPU (59512 per character), 157715 fed by the host (22531 per character); 29754 machine-block records (4251 per character)
+verified launches: 231/231
+generated tokens by kernel per character: {'mm_raw': 12292, 'mm_res': 10880, 'silu': 8320, 'mm_byte': 8224, 'av': 5672, 'rmsnorm': 4705, 'mm_pair': 4056, 'sample': 2742, 'softmax': 1909, 'embed': 712}
+the model's own time: 279s, 574065 tokens stepped, 2058 tokens/s
+280s
